@@ -42,6 +42,7 @@ export const AssistedBookingWizard: React.FC<AssistedBookingWizardProps> = ({ cu
     setLoading(true);
     setErrorMsg("");
     setConfirmedBooking(null);
+    const farmerObj = farmers.find((f) => f.id === selectedFarmerId);
     try {
       const res = await api.recommendBooking({
         farmer_id: selectedFarmerId,
@@ -50,8 +51,8 @@ export const AssistedBookingWizard: React.FC<AssistedBookingWizardProps> = ({ cu
         preferred_date: preferredDate,
         preferred_time_start: "10:00",
         preferred_time_end: "13:00",
-        origin_lat: 18.5204,
-        origin_lng: 73.8567,
+        origin_lat: farmerObj?.lat || 23.2010,
+        origin_lng: farmerObj?.lng || 75.8210,
       });
       setRecommendation(res);
       if (res.recommended) setSelectedSlot(res.recommended);
@@ -67,20 +68,22 @@ export const AssistedBookingWizard: React.FC<AssistedBookingWizardProps> = ({ cu
     setLoading(true);
     setErrorMsg("");
     try {
-      const res = await api.createBooking({
+      const startT = selectedSlot.slot_start.split("T")[1]?.slice(0, 5) || "10:00";
+      const endT = selectedSlot.slot_end.split("T")[1]?.slice(0, 5) || "11:00";
+
+      const bk = await api.createBooking({
         farmer_id: selectedFarmerId,
         centre_id: selectedSlot.centre_id,
         commodity_id: selectedCommodityId,
         booking_date: preferredDate,
-        slot_start: selectedSlot.slot_start.split("T")[1]?.slice(0, 5) || "10:30",
-        slot_end: selectedSlot.slot_end.split("T")[1]?.slice(0, 5) || "11:00",
+        slot_start: startT,
+        slot_end: endT,
         expected_quantity_q: Number(expectedQty),
         source: "CSC",
-      }, currentUser);
-      setConfirmedBooking(res);
-      setRecommendation(null);
+      });
+      setConfirmedBooking(bk);
     } catch (err: any) {
-      setErrorMsg(err.message || "Booking failed");
+      setErrorMsg(err.message || "Failed to create booking");
     } finally {
       setLoading(false);
     }
@@ -93,7 +96,7 @@ export const AssistedBookingWizard: React.FC<AssistedBookingWizardProps> = ({ cu
       <div className="bg-white rounded-2xl p-6 border border-surface-border shadow-xs">
         <div className="flex items-center gap-2 text-agro-800 font-bold text-xs uppercase tracking-wider mb-1">
           <Store className="w-4 h-4 text-grain-500" />
-          <span>CSC MahaSeva Rural Kiosk Mode</span>
+          <span>CSC Digital Seva Rural Kiosk Mode</span>
         </div>
         <h1 className="text-2xl font-black text-agro-950 font-serif">Assisted Farmer Booking Portal</h1>
         <p className="text-sm text-gray-600 mt-1">

@@ -22,15 +22,15 @@ export const RoleSwitcherBar: React.FC<RoleSwitcherBarProps> = ({
   const [resetting, setResetting] = useState(false);
 
   // Group default role representatives
-  const farmerUser = allUsers.find((u) => u.role === "FARMER" && u.display_name.includes("Ramesh")) || allUsers.find((u) => u.role === "FARMER");
-  const staffUser = allUsers.find((u) => u.role === "STAFF" && u.display_name.includes("Suresh")) || allUsers.find((u) => u.role === "STAFF");
+  const farmerUser = allUsers.find((u) => u.role === "FARMER" && u.id === "farmer-01") || allUsers.find((u) => u.role === "FARMER");
+  const staffUser = allUsers.find((u) => u.role === "STAFF" && u.id === "staff-01") || allUsers.find((u) => u.role === "STAFF");
   const cscUser = allUsers.find((u) => u.role === "CSC");
   const adminUser = allUsers.find((u) => u.role === "ADMIN");
 
   const roles = [
-    { role: "FARMER", label: "Farmer", icon: User, user: farmerUser, desc: "Ramesh Patil (Khed)" },
-    { role: "STAFF", label: "Centre Staff", icon: Building2, user: staffUser, desc: "Centre B (Hadapsar)" },
-    { role: "CSC", label: "CSC Operator", icon: Store, user: cscUser, desc: "Assisted Kiosk" },
+    { role: "FARMER", label: "Farmer", icon: User, user: farmerUser, desc: farmerUser ? `${farmerUser.display_name} (${farmerUser.village?.split(",")[0] || "Demo"})` : "Farmer Demo" },
+    { role: "STAFF", label: "Centre Staff", icon: Building2, user: staffUser, desc: "Centre B (Ujjain)" },
+    { role: "CSC", label: "CSC Operator", icon: Store, user: cscUser, desc: "Assisted Kiosk (VLE)" },
     { role: "ADMIN", label: "Super Admin", icon: Shield, user: adminUser, desc: "Directorate / FCI" },
   ];
 

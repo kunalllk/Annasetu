@@ -53,9 +53,9 @@ def reset_and_seed_database(db: Session = None):
     centres_data = [
         {
             "code": "CENTRE-A",
-            "name": "Shivajinagar Mandi Depot",
-            "address": "Gate 2, Agriculture APMC Yard, Shivajinagar, Pune 411005",
-            "lat": 18.5314, "lng": 73.8446,
+            "name": "Karnal Central Grain Mandi",
+            "address": "APMC Market Complex, GT Road, Karnal 132001, Haryana",
+            "lat": 29.6857, "lng": 76.9905,
             "storage_capacity_q": 6000.0, # 600 tonnes
             "occupied_committed_q": 5200.0, # 86% full! Congested
             "daily_processing_capacity_q": 300.0,
@@ -65,9 +65,9 @@ def reset_and_seed_database(db: Session = None):
         },
         {
             "code": "CENTRE-B",
-            "name": "Hadapsar Agro Logistics Hub",
-            "address": "Sector 4, Mega Food Park, Hadapsar, Pune 411028",
-            "lat": 18.5089, "lng": 73.9259,
+            "name": "Ujjain Multi-Commodity Agro Hub",
+            "address": "Krishi Upaj Mandi Complex, Agar Road, Ujjain 456006, Madhya Pradesh",
+            "lat": 23.1765, "lng": 75.7885,
             "storage_capacity_q": 5000.0, # 500 tonnes
             "occupied_committed_q": 1800.0, # 320 tonnes remaining! High capacity fit
             "daily_processing_capacity_q": 600.0, # 60 tonnes
@@ -77,9 +77,9 @@ def reset_and_seed_database(db: Session = None):
         },
         {
             "code": "CENTRE-C",
-            "name": "Baramati Regional Mega Depot",
-            "address": "State Warehousing Complex, MIDC Phase II, Baramati 413133",
-            "lat": 18.1517, "lng": 74.5771,
+            "name": "Nizamabad Regional Mega Storage Depot",
+            "address": "State Warehousing & APMC Logistics Park, Nizamabad 503001, Telangana",
+            "lat": 18.6725, "lng": 78.0941,
             "storage_capacity_q": 15000.0, # 1,500 tonnes
             "occupied_committed_q": 4500.0,
             "daily_processing_capacity_q": 1000.0,
@@ -89,9 +89,9 @@ def reset_and_seed_database(db: Session = None):
         },
         {
             "code": "CENTRE-D",
-            "name": "Talegaon Grain Yard",
-            "address": "Old Mumbai-Pune Highway, Talegaon Dabhade 410506",
-            "lat": 18.7289, "lng": 73.6841,
+            "name": "Alwar Krishi Upaj Mandi Yard",
+            "address": "Matsya Industrial Area APMC Terminal, Alwar 301001, Rajasthan",
+            "lat": 27.5530, "lng": 76.6346,
             "storage_capacity_q": 3500.0,
             "occupied_committed_q": 2900.0,
             "daily_processing_capacity_q": 350.0,
@@ -101,9 +101,9 @@ def reset_and_seed_database(db: Session = None):
         },
         {
             "code": "CENTRE-E",
-            "name": "Saswad Millets & Coarse Grain Center",
-            "address": "APMC Sub-Yard, Dive Ghat Road, Saswad 412301",
-            "lat": 18.3444, "lng": 74.0311,
+            "name": "Burdwan Coarse Grain & Rice Depot",
+            "address": "FCI Complex & APMC Sub-Yard, Nababhat, Bardhaman 713101, West Bengal",
+            "lat": 23.2324, "lng": 87.8615,
             "storage_capacity_q": 4000.0,
             "occupied_committed_q": 1200.0,
             "daily_processing_capacity_q": 400.0,
@@ -149,9 +149,9 @@ def reset_and_seed_database(db: Session = None):
     admin_user = User(
         id=str(uuid.uuid4()),
         role="ADMIN",
-        display_name="Dr. Rajesh Sharma",
+        display_name="Dr. Rajeshwar Sharma (Director General)",
         mobile_masked="+91 98XXX XX001",
-        email="rajesh.sharma@annasetu.gov.in"
+        email="rajeshwar.sharma@annasetu.gov.in"
     )
     db.add(admin_user)
 
@@ -159,19 +159,19 @@ def reset_and_seed_database(db: Session = None):
     csc_user = User(
         id=str(uuid.uuid4()),
         role="CSC",
-        display_name="Pravin Chavan (MahaSeva CSC)",
+        display_name="Pravin Kumar (CSC Digital Seva Kendra)",
         mobile_masked="+91 98XXX XX002",
-        email="csc.haveli@annasetu.gov.in"
+        email="csc.kiosk@annasetu.gov.in"
     )
     db.add(csc_user)
 
-    # Centre B Staff (Primary Demo Staff)
+    # Centre B Staff (Primary Demo Staff - Ujjain)
     staff_b = User(
         id=str(uuid.uuid4()),
         role="STAFF",
-        display_name="Suresh Deshmukh (Procurement Officer)",
+        display_name="S. K. Verma (Senior Procurement Officer)",
         mobile_masked="+91 98XXX XX003",
-        email="suresh.deshmukh@annasetu.gov.in"
+        email="sk.verma@annasetu.gov.in"
     )
     db.add(staff_b)
     db.flush()
@@ -183,13 +183,13 @@ def reset_and_seed_database(db: Session = None):
     )
     db.add(staff_assign_b)
 
-    # Centre A Staff
+    # Centre A Staff (Karnal)
     staff_a = User(
         id=str(uuid.uuid4()),
         role="STAFF",
-        display_name="Vikas Kulkarni (Gate Inspector)",
+        display_name="Manpreet Singh Sodhi (Gate Inspector)",
         mobile_masked="+91 98XXX XX004",
-        email="vikas.kulkarni@annasetu.gov.in"
+        email="manpreet.sodhi@annasetu.gov.in"
     )
     db.add(staff_a)
     db.flush()
@@ -202,47 +202,47 @@ def reset_and_seed_database(db: Session = None):
     db.add(staff_assign_a)
     db.flush()
 
-    print("Seeding 35 Farmers...")
-    farmer_names = [
-        ("Ramesh Patil", "Khed", "Pune", 18.5204, 73.8567), # Main demo farmer
-        ("Suresh Gaikwad", "Hadapsar", "Pune", 18.5080, 73.9240),
-        ("Ananda Shinde", "Manchar", "Pune", 18.9958, 73.9422),
-        ("Sunita More", "Shirur", "Pune", 18.8256, 74.3750),
-        ("Tukaram Jadhav", "Bhor", "Pune", 18.1524, 73.8441),
-        ("Dilip Pawar", "Daund", "Pune", 18.4650, 74.5820),
-        ("Baburao Kadam", "Saswad", "Pune", 18.3440, 74.0300),
-        ("Mahadev Shinde", "Junnar", "Pune", 19.2083, 73.8767),
-        ("Kishor Salunkhe", "Baramati", "Pune", 18.1500, 74.5800),
-        ("Vandana Jagtap", "Purandar", "Pune", 18.2800, 74.0100),
-        ("Ganesh Bhosale", "Haveli", "Pune", 18.5100, 73.8900),
-        ("Sanjay Thorat", "Talegaon", "Pune", 18.7300, 73.6900),
-        ("Santosh Chavan", "Chakan", "Pune", 18.7600, 73.8600),
-        ("Nitin Ghadge", "Wagholi", "Pune", 18.5800, 73.9800),
-        ("Prakash Darekar", "Loni Kalbhor", "Pune", 18.4900, 74.0200),
-        ("Shantaram Kale", "Uruli Kanchan", "Pune", 18.4800, 74.1300),
-        ("Ashok Nikam", "Khadakwasla", "Pune", 18.4400, 73.7600),
-        ("Pandurang More", "Rajgurunagar", "Pune", 18.8600, 73.8900),
-        ("Bhagwan Dhore", "Alandi", "Pune", 18.6700, 73.8900),
-        ("Chandrakant Kokare", "Narayangaon", "Pune", 19.1200, 73.9700),
-        ("Bapu Jagdale", "Otur", "Pune", 19.2600, 73.9200),
-        ("Subhash Sonawane", "Ghogargaon", "Pune", 18.9000, 74.2000),
-        ("Popat Raut", "Malegaon Khurd", "Pune", 18.1800, 74.4500),
-        ("Ravindra Adsul", "Someshwar", "Pune", 18.2100, 74.2800),
-        ("Namdev Giramkar", "Supa", "Pune", 18.3300, 74.4100),
-        ("Laxman Bhujbal", "Morgaon", "Pune", 18.2700, 74.3100),
-        ("Dattatray Wagh", "Jejuri", "Pune", 18.2700, 74.1600),
-        ("Bhimrao Londhe", "Yavat", "Pune", 18.4700, 74.2900),
-        ("Kalyanrao Kolhe", "Kedgaon", "Pune", 18.4500, 74.3900),
-        ("Vitthal Thite", "Kashti", "Pune", 18.5200, 74.5200),
-        ("Maruti Bankar", "Belwandi", "Pune", 18.6200, 74.6100),
-        ("Vishnu Tambe", "Pabal", "Pune", 18.8300, 74.0500),
-        ("Dnyaneshwar Gore", "Shikrapur", "Pune", 18.7000, 74.1200),
-        ("Tanaji Gholap", "Koregaon Bhima", "Pune", 18.6600, 74.0600),
-        ("Sitaram Phadtare", "Nira", "Pune", 18.1000, 74.2100)
+    print("Seeding 35 Pan-India Farmers...")
+    farmer_records = [
+        ("Ramkishore Yadav", "Tarana", "Ujjain", "Madhya Pradesh", 23.2010, 75.8210),
+        ("Harpreet Singh", "Nilokheri", "Karnal", "Haryana", 29.7210, 76.9520),
+        ("Gurpreet Singh Gill", "Khanna", "Ludhiana", "Punjab", 30.7020, 76.2150),
+        ("Venkata Subba Rao", "Armoor", "Nizamabad", "Telangana", 18.7910, 78.2910),
+        ("Manoj Meena", "Behror", "Alwar", "Rajasthan", 27.8870, 76.2810),
+        ("Subhash Mondal", "Memari", "Bardhaman", "West Bengal", 23.1810, 88.1120),
+        ("Rajeshwar Patil", "Niphad", "Nashik", "Maharashtra", 20.0820, 74.1120),
+        ("Annamalai Reddiar", "Kumbakonam", "Thanjavur", "Tamil Nadu", 10.9610, 79.3820),
+        ("Manjunath Gowda", "Maddur", "Mandya", "Karnataka", 12.5840, 77.0420),
+        ("Bhupendra Chaudhari", "Kadi", "Mehsana", "Gujarat", 23.2980, 72.3310),
+        ("Dinesh Chandra Sharma", "Nawabganj", "Barabanki", "Uttar Pradesh", 26.9280, 81.1890),
+        ("Birendra Prasad Singh", "Dumraon", "Buxar", "Bihar", 25.5640, 83.9770),
+        ("Joginder Pal", "Pehowa", "Kurukshetra", "Haryana", 29.9820, 76.5820),
+        ("Balwant Dhillon", "Baghapurana", "Moga", "Punjab", 30.8160, 75.1720),
+        ("Shivram Patel", "Sonkatch", "Dewas", "Madhya Pradesh", 22.9670, 76.0530),
+        ("K. Srirama Murthy", "Tenali", "Guntur", "Andhra Pradesh", 16.2430, 80.6400),
+        ("Prabhat Ranjan Jena", "Attabira", "Bargarh", "Odisha", 21.3340, 83.6210),
+        ("Dipankar Saikia", "Raha", "Nagaon", "Assam", 26.3480, 92.6840),
+        ("Raghunath Soren", "Shikaripara", "Dumka", "Jharkhand", 24.2680, 87.2490),
+        ("Sukhwinder Kaur", "Amloh", "Fatehgarh Sahib", "Punjab", 30.6420, 76.3880),
+        ("Sunita Devi Kushwaha", "Dehri", "Rohtas", "Bihar", 24.9520, 84.0310),
+        ("Laxmi Narayan Rathore", "Sangod", "Kota", "Rajasthan", 25.1800, 75.8340),
+        ("Chandrashekhar Hegde", "Yellapur", "Uttara Kannada", "Karnataka", 14.6190, 74.8440),
+        ("Karthikeyan Selvam", "Anaimalai", "Coimbatore", "Tamil Nadu", 10.6600, 77.0080),
+        ("Devendra Solanki", "Petlad", "Anand", "Gujarat", 22.5640, 72.9280),
+        ("Gajanan Deshmukh", "Morshi", "Amravati", "Maharashtra", 20.9320, 77.7520),
+        ("Babu Lal Verma", "Ashta", "Sehore", "Madhya Pradesh", 23.2030, 77.0840),
+        ("Mahendra Pratap Singh", "Maholi", "Sitapur", "Uttar Pradesh", 27.5720, 80.6790),
+        ("Tapan Kumar Roy", "Dinhata", "Cooch Behar", "West Bengal", 26.3230, 89.4510),
+        ("Santosh Kumar Sahu", "Abhanpur", "Raipur", "Chhattisgarh", 21.2510, 81.6290),
+        ("Ravinder Reddy", "Miryalaguda", "Nalgonda", "Telangana", 16.8710, 79.5620),
+        ("Choudhary Ranjeet Ram", "Pilibanga", "Hanumangarh", "Rajasthan", 29.5810, 74.3210),
+        ("Amarjit Singh Sandhu", "Patti", "Tarn Taran", "Punjab", 31.4520, 74.9280),
+        ("Kishore Naik", "Kuchinda", "Sambalpur", "Odisha", 21.4680, 83.9780),
+        ("Pooja Shrikant Shinde", "Hatkanangle", "Kolhapur", "Maharashtra", 16.7050, 74.2430),
     ]
 
     farmers = []
-    for idx, (name, village, dist, lat, lng) in enumerate(farmer_names):
+    for idx, (name, village, dist, state_name, lat, lng) in enumerate(farmer_records):
         last4 = f"{1000 + idx}"
         mobile_last3 = f"{100 + idx}"
         f_user = User(
@@ -261,8 +261,8 @@ def reset_and_seed_database(db: Session = None):
             demo_gov_id_masked=f"XXXX-XXXX-{last4}",
             village=village,
             district=dist,
-            state="Maharashtra",
-            preferred_language="English",
+            state=state_name,
+            preferred_language="Hindi" if state_name in ["Madhya Pradesh", "Rajasthan", "Uttar Pradesh", "Bihar", "Chhattisgarh", "Haryana"] else "English",
             lat=lat,
             lng=lng
         )
@@ -275,7 +275,7 @@ def reset_and_seed_database(db: Session = None):
     two_days_ago_str = (datetime.now(timezone.utc) - timedelta(days=2)).strftime("%Y-%m-%d")
     tomorrow_str = (datetime.now(timezone.utc) + timedelta(days=1)).strftime("%Y-%m-%d")
 
-    print("Seeding Today's Active Queue for Centre B (Hadapsar Agro Logistics Hub)...")
+    print("Seeding Today's Active Queue for Centre B (Ujjain Multi-Commodity Agro Hub)...")
     
     # 1. Currently Serving farmer at Centre B
     b_serving = Booking(
@@ -499,7 +499,7 @@ def reset_and_seed_database(db: Session = None):
             procurement_id=proc.id,
             status=pay_status,
             source="PFMS_GOV_EXTERNAL",
-            external_reference_masked=f"PFMS-2026-MAHA-{3001+idx}",
+            external_reference_masked=f"PFMS-2026-GOI-{90100+idx}",
             updated_by="PFMS_INTEGRATION_GATEWAY" if pay_status == "COMPLETED" else "SYSTEM_SYNC",
             last_synced_at=datetime.now(timezone.utc)
         )

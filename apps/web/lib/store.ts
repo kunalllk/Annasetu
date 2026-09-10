@@ -36,10 +36,10 @@ function createInitialState() {
     {
       id: "centre-a",
       code: "CENTRE-A",
-      name: "Shivajinagar Mandi Depot",
-      address: "Gate 2, Agriculture APMC Yard, Shivajinagar, Pune 411005",
-      lat: 18.5314,
-      lng: 73.8446,
+      name: "Karnal Central Grain Mandi",
+      address: "APMC Market Complex, GT Road, Karnal 132001, Haryana",
+      lat: 29.6857,
+      lng: 76.9905,
       operating_start: "09:00",
       operating_end: "17:00",
       active: true,
@@ -63,10 +63,10 @@ function createInitialState() {
     {
       id: "centre-b",
       code: "CENTRE-B",
-      name: "Hadapsar Agro Logistics Hub",
-      address: "Sector 4, Mega Food Park, Hadapsar, Pune 411028",
-      lat: 18.5089,
-      lng: 73.9259,
+      name: "Ujjain Multi-Commodity Agro Hub",
+      address: "Krishi Upaj Mandi Complex, Agar Road, Ujjain 456006, Madhya Pradesh",
+      lat: 23.1765,
+      lng: 75.7885,
       operating_start: "09:00",
       operating_end: "17:00",
       active: true,
@@ -90,10 +90,10 @@ function createInitialState() {
     {
       id: "centre-c",
       code: "CENTRE-C",
-      name: "Baramati Regional Mega Storage Depot",
-      address: "State Warehousing Complex, MIDC Phase II, Baramati 413133",
-      lat: 18.1517,
-      lng: 74.5771,
+      name: "Nizamabad Regional Mega Storage Depot",
+      address: "State Warehousing & APMC Logistics Park, Nizamabad 503001, Telangana",
+      lat: 18.6725,
+      lng: 78.0941,
       operating_start: "09:00",
       operating_end: "17:00",
       active: true,
@@ -117,10 +117,10 @@ function createInitialState() {
     {
       id: "centre-d",
       code: "CENTRE-D",
-      name: "Talegaon Grain Yard",
-      address: "Old Mumbai-Pune Highway, Talegaon Dabhade 410506",
-      lat: 18.7289,
-      lng: 73.6841,
+      name: "Alwar Krishi Upaj Mandi Yard",
+      address: "Matsya Industrial Area APMC Terminal, Alwar 301001, Rajasthan",
+      lat: 27.5530,
+      lng: 76.6346,
       operating_start: "09:00",
       operating_end: "17:00",
       active: true,
@@ -144,10 +144,10 @@ function createInitialState() {
     {
       id: "centre-e",
       code: "CENTRE-E",
-      name: "Saswad Millets & Coarse Grain Mandi",
-      address: "APMC Sub-Yard, Dive Ghat Road, Saswad 412301",
-      lat: 18.3444,
-      lng: 74.0311,
+      name: "Burdwan Coarse Grain & Rice Depot",
+      address: "FCI Complex & APMC Sub-Yard, Nababhat, Bardhaman 713101, West Bengal",
+      lat: 23.2324,
+      lng: 87.8615,
       operating_start: "09:00",
       operating_end: "17:00",
       active: true,
@@ -170,46 +170,61 @@ function createInitialState() {
     },
   ];
 
-  // 35 Farmers & Staff
+  // 35 Pan-India Farmers & Administrative Staff
   const users: DemoUser[] = [
-    { id: "farmer-01", role: "FARMER", display_name: "Ramesh Patil", mobile_masked: "+91 98XXX XX101", village: "Khed, Pune" },
-    { id: "farmer-02", role: "FARMER", display_name: "Suresh Gaikwad", mobile_masked: "+91 98XXX XX102", village: "Hadapsar, Pune" },
-    { id: "farmer-03", role: "FARMER", display_name: "Ananda Shinde", mobile_masked: "+91 98XXX XX103", village: "Manchar, Pune" },
-    { id: "farmer-04", role: "FARMER", display_name: "Sunita More", mobile_masked: "+91 98XXX XX104", village: "Shirur, Pune" },
-    { id: "farmer-05", role: "FARMER", display_name: "Tukaram Jadhav", mobile_masked: "+91 98XXX XX105", village: "Bhor, Pune" },
-    { id: "farmer-06", role: "FARMER", display_name: "Dilip Pawar", mobile_masked: "+91 98XXX XX106", village: "Daund, Pune" },
-    { id: "farmer-07", role: "FARMER", display_name: "Baburao Kadam", mobile_masked: "+91 98XXX XX107", village: "Saswad, Pune" },
-    { id: "farmer-08", role: "FARMER", display_name: "Mahadev Shinde", mobile_masked: "+91 98XXX XX108", village: "Junnar, Pune" },
-    { id: "farmer-09", role: "FARMER", display_name: "Kishor Salunkhe", mobile_masked: "+91 98XXX XX109", village: "Baramati, Pune" },
-    { id: "farmer-10", role: "FARMER", display_name: "Vandana Jagtap", mobile_masked: "+91 98XXX XX110", village: "Purandar, Pune" },
-    // Staff & Admin
-    { id: "staff-01", role: "STAFF", display_name: "Suresh Deshmukh (Officer)", mobile_masked: "+91 98XXX XX001", centre_id: "centre-b", centre_name: "Hadapsar Agro Logistics Hub" },
-    { id: "staff-02", role: "STAFF", display_name: "Vikas Kulkarni (Inspector)", mobile_masked: "+91 98XXX XX002", centre_id: "centre-a", centre_name: "Shivajinagar Mandi Depot" },
-    { id: "csc-01", role: "CSC", display_name: "Pravin Chavan (MahaSeva CSC)", mobile_masked: "+91 98XXX XX003" },
-    { id: "admin-01", role: "ADMIN", display_name: "Dr. Rajesh Sharma (Director)", mobile_masked: "+91 98XXX XX004" },
+    // Primary Demo Farmers representing North, Central, South, West, and East India
+    { id: "farmer-01", role: "FARMER", display_name: "Ramkishore Yadav", mobile_masked: "+91 98XXX XX101", village: "Tarana, Ujjain", state: "Madhya Pradesh", lat: 23.201, lng: 75.821 },
+    { id: "farmer-02", role: "FARMER", display_name: "Harpreet Singh", mobile_masked: "+91 98XXX XX102", village: "Nilokheri, Karnal", state: "Haryana", lat: 29.721, lng: 76.952 },
+    { id: "farmer-03", role: "FARMER", display_name: "Gurpreet Singh Gill", mobile_masked: "+91 98XXX XX103", village: "Khanna, Ludhiana", state: "Punjab", lat: 30.702, lng: 76.215 },
+    { id: "farmer-04", role: "FARMER", display_name: "Venkata Subba Rao", mobile_masked: "+91 98XXX XX104", village: "Armoor, Nizamabad", state: "Telangana", lat: 18.791, lng: 78.291 },
+    { id: "farmer-05", role: "FARMER", display_name: "Manoj Meena", mobile_masked: "+91 98XXX XX105", village: "Behror, Alwar", state: "Rajasthan", lat: 27.887, lng: 76.281 },
+    { id: "farmer-06", role: "FARMER", display_name: "Subhash Mondal", mobile_masked: "+91 98XXX XX106", village: "Memari, Bardhaman", state: "West Bengal", lat: 23.181, lng: 88.112 },
+    { id: "farmer-07", role: "FARMER", display_name: "Rajeshwar Patil", mobile_masked: "+91 98XXX XX107", village: "Niphad, Nashik", state: "Maharashtra", lat: 20.082, lng: 74.112 },
+    { id: "farmer-08", role: "FARMER", display_name: "Annamalai Reddiar", mobile_masked: "+91 98XXX XX108", village: "Kumbakonam, Thanjavur", state: "Tamil Nadu", lat: 10.961, lng: 79.382 },
+    { id: "farmer-09", role: "FARMER", display_name: "Manjunath Gowda", mobile_masked: "+91 98XXX XX109", village: "Maddur, Mandya", state: "Karnataka", lat: 12.584, lng: 77.042 },
+    { id: "farmer-10", role: "FARMER", display_name: "Bhupendra Chaudhari", mobile_masked: "+91 98XXX XX110", village: "Kadi, Mehsana", state: "Gujarat", lat: 23.298, lng: 72.331 },
+    { id: "farmer-11", role: "FARMER", display_name: "Dinesh Chandra Sharma", mobile_masked: "+91 98XXX XX111", village: "Nawabganj, Barabanki", state: "Uttar Pradesh", lat: 26.928, lng: 81.189 },
+    { id: "farmer-12", role: "FARMER", display_name: "Birendra Prasad Singh", mobile_masked: "+91 98XXX XX112", village: "Dumraon, Buxar", state: "Bihar", lat: 25.564, lng: 83.977 },
+    { id: "farmer-13", role: "FARMER", display_name: "Joginder Pal", mobile_masked: "+91 98XXX XX113", village: "Pehowa, Kurukshetra", state: "Haryana", lat: 29.982, lng: 76.582 },
+    { id: "farmer-14", role: "FARMER", display_name: "Balwant Dhillon", mobile_masked: "+91 98XXX XX114", village: "Baghapurana, Moga", state: "Punjab", lat: 30.816, lng: 75.172 },
+    { id: "farmer-15", role: "FARMER", display_name: "Shivram Patel", mobile_masked: "+91 98XXX XX115", village: "Sonkatch, Dewas", state: "Madhya Pradesh", lat: 22.967, lng: 76.053 },
+    { id: "farmer-16", role: "FARMER", display_name: "K. Srirama Murthy", mobile_masked: "+91 98XXX XX116", village: "Tenali, Guntur", state: "Andhra Pradesh", lat: 16.243, lng: 80.640 },
+    { id: "farmer-17", role: "FARMER", display_name: "Prabhat Ranjan Jena", mobile_masked: "+91 98XXX XX117", village: "Attabira, Bargarh", state: "Odisha", lat: 21.334, lng: 83.621 },
+    { id: "farmer-18", role: "FARMER", display_name: "Dipankar Saikia", mobile_masked: "+91 98XXX XX118", village: "Raha, Nagaon", state: "Assam", lat: 26.348, lng: 92.684 },
+    { id: "farmer-19", role: "FARMER", display_name: "Raghunath Soren", mobile_masked: "+91 98XXX XX119", village: "Shikaripara, Dumka", state: "Jharkhand", lat: 24.268, lng: 87.249 },
+    { id: "farmer-20", role: "FARMER", display_name: "Sukhwinder Kaur", mobile_masked: "+91 98XXX XX120", village: "Amloh, Fatehgarh Sahib", state: "Punjab", lat: 30.642, lng: 76.388 },
+    { id: "farmer-21", role: "FARMER", display_name: "Sunita Devi Kushwaha", mobile_masked: "+91 98XXX XX121", village: "Dehri, Rohtas", state: "Bihar", lat: 24.952, lng: 84.031 },
+    { id: "farmer-22", role: "FARMER", display_name: "Laxmi Narayan Rathore", mobile_masked: "+91 98XXX XX122", village: "Sangod, Kota", state: "Rajasthan", lat: 25.180, lng: 75.834 },
+    { id: "farmer-23", role: "FARMER", display_name: "Chandrashekhar Hegde", mobile_masked: "+91 98XXX XX123", village: "Yellapur, Uttara Kannada", state: "Karnataka", lat: 14.619, lng: 74.844 },
+    { id: "farmer-24", role: "FARMER", display_name: "Karthikeyan Selvam", mobile_masked: "+91 98XXX XX124", village: "Anaimalai, Coimbatore", state: "Tamil Nadu", lat: 10.660, lng: 77.008 },
+    { id: "farmer-25", role: "FARMER", display_name: "Devendra Solanki", mobile_masked: "+91 98XXX XX125", village: "Petlad, Anand", state: "Gujarat", lat: 22.564, lng: 72.928 },
+    { id: "farmer-26", role: "FARMER", display_name: "Gajanan Deshmukh", mobile_masked: "+91 98XXX XX126", village: "Morshi, Amravati", state: "Maharashtra", lat: 20.932, lng: 77.752 },
+    { id: "farmer-27", role: "FARMER", display_name: "Babu Lal Verma", mobile_masked: "+91 98XXX XX127", village: "Ashta, Sehore", state: "Madhya Pradesh", lat: 23.203, lng: 77.084 },
+    { id: "farmer-28", role: "FARMER", display_name: "Mahendra Pratap Singh", mobile_masked: "+91 98XXX XX128", village: "Maholi, Sitapur", state: "Uttar Pradesh", lat: 27.572, lng: 80.679 },
+    { id: "farmer-29", role: "FARMER", display_name: "Tapan Kumar Roy", mobile_masked: "+91 98XXX XX129", village: "Dinhata, Cooch Behar", state: "West Bengal", lat: 26.323, lng: 89.451 },
+    { id: "farmer-30", role: "FARMER", display_name: "Santosh Kumar Sahu", mobile_masked: "+91 98XXX XX130", village: "Abhanpur, Raipur", state: "Chhattisgarh", lat: 21.251, lng: 81.629 },
+    { id: "farmer-31", role: "FARMER", display_name: "Ravinder Reddy", mobile_masked: "+91 98XXX XX131", village: "Miryalaguda, Nalgonda", state: "Telangana", lat: 16.871, lng: 79.562 },
+    { id: "farmer-32", role: "FARMER", display_name: "Choudhary Ranjeet Ram", mobile_masked: "+91 98XXX XX132", village: "Pilibanga, Hanumangarh", state: "Rajasthan", lat: 29.581, lng: 74.321 },
+    { id: "farmer-33", role: "FARMER", display_name: "Amarjit Singh Sandhu", mobile_masked: "+91 98XXX XX133", village: "Patti, Tarn Taran", state: "Punjab", lat: 31.452, lng: 74.928 },
+    { id: "farmer-34", role: "FARMER", display_name: "Kishore Naik", mobile_masked: "+91 98XXX XX134", village: "Kuchinda, Sambalpur", state: "Odisha", lat: 21.468, lng: 83.978 },
+    { id: "farmer-35", role: "FARMER", display_name: "Pooja Shrikant Shinde", mobile_masked: "+91 98XXX XX135", village: "Hatkanangle, Kolhapur", state: "Maharashtra", lat: 16.705, lng: 74.243 },
+    // Staff & Administrative Officers
+    { id: "staff-01", role: "STAFF", display_name: "S. K. Verma (Senior Procurement Officer)", mobile_masked: "+91 98XXX XX001", centre_id: "centre-b", centre_name: "Ujjain Multi-Commodity Agro Hub" },
+    { id: "staff-02", role: "STAFF", display_name: "Manpreet Singh Sodhi (Gate Inspector)", mobile_masked: "+91 98XXX XX002", centre_id: "centre-a", centre_name: "Karnal Central Grain Mandi" },
+    { id: "csc-01", role: "CSC", display_name: "Pravin Kumar (CSC Digital Seva Kendra)", mobile_masked: "+91 98XXX XX003" },
+    { id: "admin-01", role: "ADMIN", display_name: "Dr. Rajeshwar Sharma (Director General)", mobile_masked: "+91 98XXX XX004" },
   ];
-
-  // Add remaining farmers up to 35
-  for (let i = 11; i <= 35; i++) {
-    users.push({
-      id: `farmer-${i.toString().padStart(2, "0")}`,
-      role: "FARMER",
-      display_name: `Farmer ${i} (Demo)`,
-      mobile_masked: `+91 98XXX XX${100 + i}`,
-      village: "Pune Rural"
-    });
-  }
 
   // Today's Bookings
   const bookings: Booking[] = [
     {
       id: "bk-01",
       booking_number: "BK-2026-0901",
-      farmer_id: "farmer-07",
-      farmer_name: "Baburao Kadam",
-      farmer_mobile: "+91 98XXX XX107",
+      farmer_id: "farmer-27",
+      farmer_name: "Babu Lal Verma",
+      farmer_mobile: "+91 98XXX XX127",
       centre_id: "centre-b",
-      centre_name: "Hadapsar Agro Logistics Hub",
+      centre_name: "Ujjain Multi-Commodity Agro Hub",
       commodity_id: "comm-1",
       commodity_name: "Wheat (Kanak)",
       booking_date: todayStr,
@@ -225,11 +240,11 @@ function createInitialState() {
     {
       id: "bk-02",
       booking_number: "BK-2026-0902",
-      farmer_id: "farmer-02",
-      farmer_name: "Suresh Gaikwad",
-      farmer_mobile: "+91 98XXX XX102",
+      farmer_id: "farmer-15",
+      farmer_name: "Shivram Patel",
+      farmer_mobile: "+91 98XXX XX115",
       centre_id: "centre-b",
-      centre_name: "Hadapsar Agro Logistics Hub",
+      centre_name: "Ujjain Multi-Commodity Agro Hub",
       commodity_id: "comm-1",
       commodity_name: "Wheat (Kanak)",
       booking_date: todayStr,
@@ -246,11 +261,11 @@ function createInitialState() {
     {
       id: "bk-03",
       booking_number: "BK-2026-0903",
-      farmer_id: "farmer-03",
-      farmer_name: "Ananda Shinde",
-      farmer_mobile: "+91 98XXX XX103",
+      farmer_id: "farmer-01",
+      farmer_name: "Ramkishore Yadav",
+      farmer_mobile: "+91 98XXX XX101",
       centre_id: "centre-b",
-      centre_name: "Hadapsar Agro Logistics Hub",
+      centre_name: "Ujjain Multi-Commodity Agro Hub",
       commodity_id: "comm-1",
       commodity_name: "Wheat (Kanak)",
       booking_date: todayStr,
@@ -267,11 +282,11 @@ function createInitialState() {
     {
       id: "bk-04",
       booking_number: "BK-2026-0904",
-      farmer_id: "farmer-04",
-      farmer_name: "Sunita More",
-      farmer_mobile: "+91 98XXX XX104",
+      farmer_id: "farmer-21",
+      farmer_name: "Sunita Devi Kushwaha",
+      farmer_mobile: "+91 98XXX XX121",
       centre_id: "centre-b",
-      centre_name: "Hadapsar Agro Logistics Hub",
+      centre_name: "Ujjain Multi-Commodity Agro Hub",
       commodity_id: "comm-2",
       commodity_name: "Paddy (Dhan)",
       booking_date: todayStr,
@@ -287,11 +302,11 @@ function createInitialState() {
     {
       id: "bk-05",
       booking_number: "BK-2026-0905",
-      farmer_id: "farmer-05",
-      farmer_name: "Tukaram Jadhav",
-      farmer_mobile: "+91 98XXX XX105",
+      farmer_id: "farmer-22",
+      farmer_name: "Laxmi Narayan Rathore",
+      farmer_mobile: "+91 98XXX XX122",
       centre_id: "centre-b",
-      centre_name: "Hadapsar Agro Logistics Hub",
+      centre_name: "Ujjain Multi-Commodity Agro Hub",
       commodity_id: "comm-1",
       commodity_name: "Wheat (Kanak)",
       booking_date: todayStr,
@@ -312,9 +327,9 @@ function createInitialState() {
       id: "tx-01",
       booking_id: "bk-cmpl-01",
       booking_number: "BK-CMPL-201",
-      farmer_id: "farmer-01", // Ramesh Patil
-      farmer_name: "Ramesh Patil",
-      centre_name: "Hadapsar Agro Logistics Hub",
+      farmer_id: "farmer-01", // Ramkishore Yadav
+      farmer_name: "Ramkishore Yadav",
+      centre_name: "Ujjain Multi-Commodity Agro Hub",
       commodity_name: "Wheat (Kanak)",
       expected_quantity_q: 50.0,
       actual_quantity_q: 48.7,
@@ -324,7 +339,7 @@ function createInitialState() {
       quality_reason: "Moisture 11.2%, Foreign matter <0.5% (FAQ Standard)",
       procurement_status: "ACCEPTED",
       payment_status: "PENDING",
-      payment_reference: "PFMS-2026-MAHA-3001",
+      payment_reference: "PFMS-2026-GOI-90142",
       completed_at: yesterdayStr,
       disputes: [],
     },
@@ -333,8 +348,8 @@ function createInitialState() {
       booking_id: "bk-cmpl-02",
       booking_number: "BK-CMPL-202",
       farmer_id: "farmer-01",
-      farmer_name: "Ramesh Patil",
-      centre_name: "Hadapsar Agro Logistics Hub",
+      farmer_name: "Ramkishore Yadav",
+      centre_name: "Ujjain Multi-Commodity Agro Hub",
       commodity_name: "Wheat (Kanak)",
       expected_quantity_q: 60.0,
       actual_quantity_q: 59.2,
@@ -344,7 +359,7 @@ function createInitialState() {
       quality_reason: "Moisture 11.5% (FAQ Standard)",
       procurement_status: "ACCEPTED",
       payment_status: "COMPLETED",
-      payment_reference: "PFMS-2026-MAHA-3002",
+      payment_reference: "PFMS-2026-GOI-90143",
       completed_at: yesterdayStr,
       disputes: [],
     },
@@ -453,8 +468,9 @@ class GlobalStore {
     origin_lat?: number;
     origin_lng?: number;
   }): RecommendationResult {
-    const fLat = req.origin_lat || 18.5204;
-    const fLng = req.origin_lng || 73.8567;
+    const farmer = this.state.users.find((u) => u.id === req.farmer_id);
+    const fLat = req.origin_lat || farmer?.lat || 23.2010;
+    const fLng = req.origin_lng || farmer?.lng || 75.8210;
 
     // Filter centres supporting commodity and with sufficient capacity
     const candidates = this.state.centres.filter((c) => {
@@ -471,7 +487,9 @@ class GlobalStore {
     }
 
     const scored: RecommendedSlot[] = candidates.map((c) => {
-      const dist = haversineDistanceKm(fLat, fLng, c.lat, c.lng);
+      const rawDist = haversineDistanceKm(fLat, fLng, c.lat, c.lng);
+      const dist = Number(rawDist.toFixed(1));
+
       // Pending quantity in today's bookings for this centre
       const centreBookings = this.state.bookings.filter(
         (b) => b.centre_id === c.id && ["CONFIRMED", "ARRIVED", "WAITING", "WEIGHING"].includes(b.status)
@@ -481,7 +499,7 @@ class GlobalStore {
       const waitMin = Math.max(15, Math.round(pendingQ / ratePerMin));
 
       // Scoring weights: Wait (35%), Capacity (25%), Distance (20%), Time (10%), Congestion (10%)
-      const distScore = Math.max(0, 1 - dist / 50);
+      const distScore = dist <= 60 ? Math.max(0.2, 1 - dist / 60) : Math.max(0.05, 1 / (1 + dist / 150));
       const waitScore = Math.max(0, 1 - waitMin / 100);
       const capScore = Math.min(1, c.capacity.remaining_storage_q / 5000);
       const totalScore = Number((distScore * 0.2 + waitScore * 0.35 + capScore * 0.25 + 0.2).toFixed(2));
@@ -491,7 +509,9 @@ class GlobalStore {
       if (waitMin <= 35) reasons.push(`Lower expected wait (~${waitMin} min)`);
       if (c.capacity.remaining_storage_q >= 2000) reasons.push(`High remaining capacity (${(c.capacity.remaining_storage_q / 10).toFixed(0)} tonnes free)`);
       if (c.capacity.processing_rate_q_per_hr >= 20) reasons.push(`Fast processing throughput (${c.capacity.processing_rate_q_per_hr} q/hr)`);
-      if (dist <= 15) reasons.push(`Convenient travel distance (${dist} km)`);
+      if (dist <= 30) reasons.push(`Local centre proximity (${dist} km away)`);
+      else if (dist <= 120) reasons.push(`Accessible regional corridor (${dist} km away)`);
+      else reasons.push(`Interstate procurement terminal (${dist} km away)`);
       if (reasons.length === 0) reasons.push("Balanced operational capacity");
 
       const slotStart = req.preferred_time_start || "10:30";
@@ -783,7 +803,7 @@ class GlobalStore {
         booking_number: booking.booking_number,
         farmer_id: booking.farmer_id,
         farmer_name: booking.farmer_name || "Farmer",
-        centre_name: booking.centre_name || "Hadapsar Agro Logistics Hub",
+        centre_name: booking.centre_name || "Ujjain Multi-Commodity Agro Hub",
         commodity_name: booking.commodity_name || "Wheat",
         expected_quantity_q: booking.expected_quantity_q,
         actual_quantity_q: actualQ,
@@ -870,7 +890,7 @@ class GlobalStore {
       tx.procurement_status = "ACCEPTED";
       tx.completed_at = new Date().toISOString();
       tx.payment_status = "PENDING";
-      tx.payment_reference = `PFMS-2026-MAHA-${Math.floor(1000 + Math.random() * 9000)}`;
+      tx.payment_reference = `PFMS-2026-GOI-${Math.floor(10000 + Math.random() * 90000)}`;
     }
 
     const centre = booking ? this.getCentre(booking.centre_id) : null;
@@ -1023,7 +1043,7 @@ class GlobalStore {
     if (tx) {
       tx.payment_status = status as any;
       if (!tx.payment_reference) {
-        tx.payment_reference = `PFMS-2026-MAHA-${Math.floor(1000 + Math.random() * 9000)}`;
+        tx.payment_reference = `PFMS-2026-GOI-${Math.floor(10000 + Math.random() * 90000)}`;
       }
     }
 

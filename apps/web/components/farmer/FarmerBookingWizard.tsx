@@ -55,8 +55,8 @@ export const FarmerBookingWizard: React.FC<FarmerBookingWizardProps> = ({
         preferred_date: preferredDate,
         preferred_time_start: tStart,
         preferred_time_end: tEnd,
-        origin_lat: 18.5204, // Demo village origin
-        origin_lng: 73.8567,
+        origin_lat: currentUser.lat || 23.2010,
+        origin_lng: currentUser.lng || 75.8210,
       });
 
       setRecommendation(result);

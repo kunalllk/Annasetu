@@ -50,7 +50,7 @@ export const FarmerOverview: React.FC<FarmerOverviewProps> = ({
             Namaste, {currentUser.display_name}
           </h1>
           <p className="text-sm text-agro-200 mt-1">
-            {currentUser.village || "Pune Division, Maharashtra"} • Masked ID: XXXX-XXXX-4821
+            {currentUser.village ? `${currentUser.village}${currentUser.state ? `, ${currentUser.state}` : ""}` : "National Agricultural Division, India"} • Masked ID: XXXX-XXXX-4821
           </p>
 
           <div className="mt-5 flex flex-wrap gap-3">

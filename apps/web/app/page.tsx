@@ -45,8 +45,8 @@ export default function AnnaSetuApp() {
             return;
           }
         }
-        // Default to Ramesh Patil (Farmer)
-        const defaultFarmer = users.find((u) => u.role === "FARMER" && u.display_name.includes("Ramesh")) || users[0];
+        // Default to Primary Demo Farmer (Ramkishore Yadav)
+        const defaultFarmer = users.find((u) => u.role === "FARMER" && u.id === "farmer-01") || users.find((u) => u.role === "FARMER") || users[0];
         setCurrentUser(defaultFarmer);
         setStoredSession(defaultFarmer);
         setDefaultTabForRole(defaultFarmer.role);

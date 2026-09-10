@@ -7,6 +7,9 @@ export interface DemoUser {
   centre_id?: string;
   centre_name?: string;
   village?: string;
+  state?: string;
+  lat?: number;
+  lng?: number;
 }
 
 export interface Commodity {
