@@ -1,6 +1,6 @@
 import { DemoUser } from "./types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "/api/v1";
 
 export function getStoredSession(): DemoUser | null {
   if (typeof window === "undefined") return null;

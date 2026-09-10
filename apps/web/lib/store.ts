@@ -1,0 +1,1049 @@
+// In-memory persistent demo store for Vercel Serverless deployment
+import {
+  DemoUser, Commodity, Centre, RecommendedSlot, RecommendationResult,
+  Booking, QueueRow, StaffDashboardKPIs, TransactionRecord, AuditLogItem, NotificationItem
+} from "./types";
+
+function haversineDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371.0;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Number((R * c).toFixed(1));
+}
+
+// Baseline Initial Seed State
+function createInitialState() {
+  const todayStr = new Date().toISOString().split("T")[0];
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yesterdayStr = yesterdayDate.toISOString().split("T")[0];
+
+  const commodities: Commodity[] = [
+    { id: "comm-1", code: "WHEAT", name: "Wheat (Kanak)", category: "Cereal", default_unit: "quintal", msp_inr_per_q: 2275.0, active: true },
+    { id: "comm-2", code: "PADDY", name: "Paddy (Dhan - Common)", category: "Cereal", default_unit: "quintal", msp_inr_per_q: 2183.0, active: true },
+    { id: "comm-3", code: "JOWAR", name: "Jowar (Hybrid)", category: "Coarse Grain / Millet", default_unit: "quintal", msp_inr_per_q: 3180.0, active: true },
+    { id: "comm-4", code: "BAJRA", name: "Bajra", category: "Millet", default_unit: "quintal", msp_inr_per_q: 2500.0, active: true },
+    { id: "comm-5", code: "RAGI", name: "Ragi (Finger Millet)", category: "Nutri-Cereal", default_unit: "quintal", msp_inr_per_q: 3846.0, active: true },
+    { id: "comm-6", code: "MAIZE", name: "Maize (Makka)", category: "Coarse Grain", default_unit: "quintal", msp_inr_per_q: 2090.0, active: true },
+  ];
+
+  const centres: Centre[] = [
+    {
+      id: "centre-a",
+      code: "CENTRE-A",
+      name: "Shivajinagar Mandi Depot",
+      address: "Gate 2, Agriculture APMC Yard, Shivajinagar, Pune 411005",
+      lat: 18.5314,
+      lng: 73.8446,
+      operating_start: "09:00",
+      operating_end: "17:00",
+      active: true,
+      capacity: {
+        storage_capacity_q: 6000.0,
+        occupied_committed_q: 5200.0, // 86% full - Congested!
+        remaining_storage_q: 800.0,
+        storage_capacity_tonnes: 600.0,
+        occupied_committed_tonnes: 520.0,
+        remaining_storage_tonnes: 80.0,
+        daily_processing_capacity_q: 300.0,
+        processed_today_q: 180.0,
+        remaining_daily_processing_q: 120.0,
+        daily_processing_capacity_tonnes: 30.0,
+        processed_today_tonnes: 18.0,
+        remaining_daily_processing_tonnes: 12.0,
+        processing_rate_q_per_hr: 8.0, // Slow rate
+      },
+      commodities: commodities.filter((c) => c.code !== "RAGI"),
+    },
+    {
+      id: "centre-b",
+      code: "CENTRE-B",
+      name: "Hadapsar Agro Logistics Hub",
+      address: "Sector 4, Mega Food Park, Hadapsar, Pune 411028",
+      lat: 18.5089,
+      lng: 73.9259,
+      operating_start: "09:00",
+      operating_end: "17:00",
+      active: true,
+      capacity: {
+        storage_capacity_q: 5000.0,
+        occupied_committed_q: 1800.0, // 320 tonnes free! High capacity fit
+        remaining_storage_q: 3200.0,
+        storage_capacity_tonnes: 500.0,
+        occupied_committed_tonnes: 180.0,
+        remaining_storage_tonnes: 320.0,
+        daily_processing_capacity_q: 600.0,
+        processed_today_q: 350.0,
+        remaining_daily_processing_q: 250.0,
+        daily_processing_capacity_tonnes: 60.0,
+        processed_today_tonnes: 35.0,
+        remaining_daily_processing_tonnes: 25.0,
+        processing_rate_q_per_hr: 25.0, // Fast rate!
+      },
+      commodities: commodities, // Supports all 6
+    },
+    {
+      id: "centre-c",
+      code: "CENTRE-C",
+      name: "Baramati Regional Mega Storage Depot",
+      address: "State Warehousing Complex, MIDC Phase II, Baramati 413133",
+      lat: 18.1517,
+      lng: 74.5771,
+      operating_start: "09:00",
+      operating_end: "17:00",
+      active: true,
+      capacity: {
+        storage_capacity_q: 15000.0,
+        occupied_committed_q: 4500.0,
+        remaining_storage_q: 10500.0,
+        storage_capacity_tonnes: 1500.0,
+        occupied_committed_tonnes: 450.0,
+        remaining_storage_tonnes: 1050.0,
+        daily_processing_capacity_q: 1000.0,
+        processed_today_q: 420.0,
+        remaining_daily_processing_q: 580.0,
+        daily_processing_capacity_tonnes: 100.0,
+        processed_today_tonnes: 42.0,
+        remaining_daily_processing_tonnes: 58.0,
+        processing_rate_q_per_hr: 30.0,
+      },
+      commodities: commodities.filter((c) => ["WHEAT", "PADDY", "MAIZE"].includes(c.code)),
+    },
+    {
+      id: "centre-d",
+      code: "CENTRE-D",
+      name: "Talegaon Grain Yard",
+      address: "Old Mumbai-Pune Highway, Talegaon Dabhade 410506",
+      lat: 18.7289,
+      lng: 73.6841,
+      operating_start: "09:00",
+      operating_end: "17:00",
+      active: true,
+      capacity: {
+        storage_capacity_q: 3500.0,
+        occupied_committed_q: 2900.0,
+        remaining_storage_q: 600.0,
+        storage_capacity_tonnes: 350.0,
+        occupied_committed_tonnes: 290.0,
+        remaining_storage_tonnes: 60.0,
+        daily_processing_capacity_q: 350.0,
+        processed_today_q: 310.0, // Near full
+        remaining_daily_processing_q: 40.0,
+        daily_processing_capacity_tonnes: 35.0,
+        processed_today_tonnes: 31.0,
+        remaining_daily_processing_tonnes: 4.0,
+        processing_rate_q_per_hr: 12.0,
+      },
+      commodities: commodities.filter((c) => ["WHEAT", "JOWAR", "BAJRA"].includes(c.code)),
+    },
+    {
+      id: "centre-e",
+      code: "CENTRE-E",
+      name: "Saswad Millets & Coarse Grain Mandi",
+      address: "APMC Sub-Yard, Dive Ghat Road, Saswad 412301",
+      lat: 18.3444,
+      lng: 74.0311,
+      operating_start: "09:00",
+      operating_end: "17:00",
+      active: true,
+      capacity: {
+        storage_capacity_q: 4000.0,
+        occupied_committed_q: 1200.0,
+        remaining_storage_q: 2800.0,
+        storage_capacity_tonnes: 400.0,
+        occupied_committed_tonnes: 120.0,
+        remaining_storage_tonnes: 280.0,
+        daily_processing_capacity_q: 400.0,
+        processed_today_q: 150.0,
+        remaining_daily_processing_q: 250.0,
+        daily_processing_capacity_tonnes: 40.0,
+        processed_today_tonnes: 15.0,
+        remaining_daily_processing_tonnes: 25.0,
+        processing_rate_q_per_hr: 16.0,
+      },
+      commodities: commodities.filter((c) => ["JOWAR", "BAJRA", "RAGI", "MAIZE"].includes(c.code)), // NO WHEAT
+    },
+  ];
+
+  // 35 Farmers & Staff
+  const users: DemoUser[] = [
+    { id: "farmer-01", role: "FARMER", display_name: "Ramesh Patil", mobile_masked: "+91 98XXX XX101", village: "Khed, Pune" },
+    { id: "farmer-02", role: "FARMER", display_name: "Suresh Gaikwad", mobile_masked: "+91 98XXX XX102", village: "Hadapsar, Pune" },
+    { id: "farmer-03", role: "FARMER", display_name: "Ananda Shinde", mobile_masked: "+91 98XXX XX103", village: "Manchar, Pune" },
+    { id: "farmer-04", role: "FARMER", display_name: "Sunita More", mobile_masked: "+91 98XXX XX104", village: "Shirur, Pune" },
+    { id: "farmer-05", role: "FARMER", display_name: "Tukaram Jadhav", mobile_masked: "+91 98XXX XX105", village: "Bhor, Pune" },
+    { id: "farmer-06", role: "FARMER", display_name: "Dilip Pawar", mobile_masked: "+91 98XXX XX106", village: "Daund, Pune" },
+    { id: "farmer-07", role: "FARMER", display_name: "Baburao Kadam", mobile_masked: "+91 98XXX XX107", village: "Saswad, Pune" },
+    { id: "farmer-08", role: "FARMER", display_name: "Mahadev Shinde", mobile_masked: "+91 98XXX XX108", village: "Junnar, Pune" },
+    { id: "farmer-09", role: "FARMER", display_name: "Kishor Salunkhe", mobile_masked: "+91 98XXX XX109", village: "Baramati, Pune" },
+    { id: "farmer-10", role: "FARMER", display_name: "Vandana Jagtap", mobile_masked: "+91 98XXX XX110", village: "Purandar, Pune" },
+    // Staff & Admin
+    { id: "staff-01", role: "STAFF", display_name: "Suresh Deshmukh (Officer)", mobile_masked: "+91 98XXX XX001", centre_id: "centre-b", centre_name: "Hadapsar Agro Logistics Hub" },
+    { id: "staff-02", role: "STAFF", display_name: "Vikas Kulkarni (Inspector)", mobile_masked: "+91 98XXX XX002", centre_id: "centre-a", centre_name: "Shivajinagar Mandi Depot" },
+    { id: "csc-01", role: "CSC", display_name: "Pravin Chavan (MahaSeva CSC)", mobile_masked: "+91 98XXX XX003" },
+    { id: "admin-01", role: "ADMIN", display_name: "Dr. Rajesh Sharma (Director)", mobile_masked: "+91 98XXX XX004" },
+  ];
+
+  // Add remaining farmers up to 35
+  for (let i = 11; i <= 35; i++) {
+    users.push({
+      id: `farmer-${i.toString().padStart(2, "0")}`,
+      role: "FARMER",
+      display_name: `Farmer ${i} (Demo)`,
+      mobile_masked: `+91 98XXX XX${100 + i}`,
+      village: "Pune Rural"
+    });
+  }
+
+  // Today's Bookings
+  const bookings: Booking[] = [
+    {
+      id: "bk-01",
+      booking_number: "BK-2026-0901",
+      farmer_id: "farmer-07",
+      farmer_name: "Baburao Kadam",
+      farmer_mobile: "+91 98XXX XX107",
+      centre_id: "centre-b",
+      centre_name: "Hadapsar Agro Logistics Hub",
+      commodity_id: "comm-1",
+      commodity_name: "Wheat (Kanak)",
+      booking_date: todayStr,
+      slot_start: "09:30",
+      slot_end: "10:00",
+      expected_quantity_q: 45.0,
+      source: "FARMER",
+      status: "WEIGHING",
+      created_at: new Date().toISOString(),
+      queue_position: 1,
+      estimated_wait_min: 0,
+    },
+    {
+      id: "bk-02",
+      booking_number: "BK-2026-0902",
+      farmer_id: "farmer-02",
+      farmer_name: "Suresh Gaikwad",
+      farmer_mobile: "+91 98XXX XX102",
+      centre_id: "centre-b",
+      centre_name: "Hadapsar Agro Logistics Hub",
+      commodity_id: "comm-1",
+      commodity_name: "Wheat (Kanak)",
+      booking_date: todayStr,
+      slot_start: "10:00",
+      slot_end: "10:30",
+      expected_quantity_q: 50.0,
+      source: "FARMER",
+      status: "ARRIVED",
+      created_at: new Date().toISOString(),
+      queue_position: 2,
+      estimated_wait_min: 15,
+      arrival_at: new Date().toISOString(),
+    },
+    {
+      id: "bk-03",
+      booking_number: "BK-2026-0903",
+      farmer_id: "farmer-03",
+      farmer_name: "Ananda Shinde",
+      farmer_mobile: "+91 98XXX XX103",
+      centre_id: "centre-b",
+      centre_name: "Hadapsar Agro Logistics Hub",
+      commodity_id: "comm-1",
+      commodity_name: "Wheat (Kanak)",
+      booking_date: todayStr,
+      slot_start: "10:30",
+      slot_end: "11:00",
+      expected_quantity_q: 60.0,
+      source: "FARMER",
+      status: "ARRIVED",
+      created_at: new Date().toISOString(),
+      queue_position: 3,
+      estimated_wait_min: 30,
+      arrival_at: new Date().toISOString(),
+    },
+    {
+      id: "bk-04",
+      booking_number: "BK-2026-0904",
+      farmer_id: "farmer-04",
+      farmer_name: "Sunita More",
+      farmer_mobile: "+91 98XXX XX104",
+      centre_id: "centre-b",
+      centre_name: "Hadapsar Agro Logistics Hub",
+      commodity_id: "comm-2",
+      commodity_name: "Paddy (Dhan)",
+      booking_date: todayStr,
+      slot_start: "11:00",
+      slot_end: "11:30",
+      expected_quantity_q: 40.0,
+      source: "FARMER",
+      status: "CONFIRMED",
+      created_at: new Date().toISOString(),
+      queue_position: 4,
+      estimated_wait_min: 45,
+    },
+    {
+      id: "bk-05",
+      booking_number: "BK-2026-0905",
+      farmer_id: "farmer-05",
+      farmer_name: "Tukaram Jadhav",
+      farmer_mobile: "+91 98XXX XX105",
+      centre_id: "centre-b",
+      centre_name: "Hadapsar Agro Logistics Hub",
+      commodity_id: "comm-1",
+      commodity_name: "Wheat (Kanak)",
+      booking_date: todayStr,
+      slot_start: "11:30",
+      slot_end: "12:00",
+      expected_quantity_q: 55.0,
+      source: "FARMER",
+      status: "CONFIRMED",
+      created_at: new Date().toISOString(),
+      queue_position: 5,
+      estimated_wait_min: 60,
+    }
+  ];
+
+  // Transactions
+  const transactions: TransactionRecord[] = [
+    {
+      id: "tx-01",
+      booking_id: "bk-cmpl-01",
+      booking_number: "BK-CMPL-201",
+      farmer_id: "farmer-01", // Ramesh Patil
+      farmer_name: "Ramesh Patil",
+      centre_name: "Hadapsar Agro Logistics Hub",
+      commodity_name: "Wheat (Kanak)",
+      expected_quantity_q: 50.0,
+      actual_quantity_q: 48.7,
+      quantity_recorded_at: yesterdayStr,
+      farmer_confirmed_at: null,
+      quality_status: "PASSED",
+      quality_reason: "Moisture 11.2%, Foreign matter <0.5% (FAQ Standard)",
+      procurement_status: "ACCEPTED",
+      payment_status: "PENDING",
+      payment_reference: "PFMS-2026-MAHA-3001",
+      completed_at: yesterdayStr,
+      disputes: [],
+    },
+    {
+      id: "tx-02",
+      booking_id: "bk-cmpl-02",
+      booking_number: "BK-CMPL-202",
+      farmer_id: "farmer-01",
+      farmer_name: "Ramesh Patil",
+      centre_name: "Hadapsar Agro Logistics Hub",
+      commodity_name: "Wheat (Kanak)",
+      expected_quantity_q: 60.0,
+      actual_quantity_q: 59.2,
+      quantity_recorded_at: yesterdayStr,
+      farmer_confirmed_at: yesterdayStr,
+      quality_status: "PASSED",
+      quality_reason: "Moisture 11.5% (FAQ Standard)",
+      procurement_status: "ACCEPTED",
+      payment_status: "COMPLETED",
+      payment_reference: "PFMS-2026-MAHA-3002",
+      completed_at: yesterdayStr,
+      disputes: [],
+    },
+  ];
+
+  // Audit Logs
+  const auditLogs: AuditLogItem[] = [
+    {
+      id: "aud-01",
+      actor_user_id: "staff-01",
+      actor_role: "STAFF",
+      centre_id: "centre-b",
+      entity_type: "procurement",
+      entity_id: "tx-01",
+      action: "ACTUAL_QUANTITY_RECORDED",
+      old_value_json: '{"expected_q": 50.0, "actual_q": null}',
+      new_value_json: '{"expected_q": 50.0, "actual_q": 48.7}',
+      reason: "Manual entry from weighbridge scale",
+      request_id: "req-101",
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: "aud-02",
+      actor_user_id: "staff-01",
+      actor_role: "STAFF",
+      centre_id: "centre-b",
+      entity_type: "booking",
+      entity_id: "bk-02",
+      action: "FARMER_ARRIVED",
+      old_value_json: '{"status": "CONFIRMED"}',
+      new_value_json: '{"status": "ARRIVED"}',
+      reason: "Gate check-in verified",
+      request_id: "req-102",
+      created_at: new Date().toISOString(),
+    },
+  ];
+
+  // Notifications
+  const notifications: NotificationItem[] = [
+    {
+      id: "notif-01",
+      user_id: "farmer-01",
+      channel: "IN_APP",
+      event_type: "BOOKING_REMINDER",
+      title: "Rabi Procurement Window Open",
+      body: "Wheat and Jowar procurement slots are now active across Pune district centres. Book your slot on AnnaSetu.",
+      delivery_status: "SENT",
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: "notif-02",
+      user_id: "farmer-01",
+      channel: "IN_APP",
+      event_type: "QUANTITY_RECORDED",
+      title: "Weighing Complete — Review & Confirm",
+      body: "Recorded Weight: 48.7 q (Expected: 50.0 q). Please review your digital receipt in AnnaSetu.",
+      delivery_status: "SENT",
+      created_at: new Date().toISOString(),
+    }
+  ];
+
+  return {
+    commodities,
+    centres,
+    users,
+    bookings,
+    transactions,
+    auditLogs,
+    notifications,
+  };
+}
+
+// Global in-memory storage instance across serverless requests
+class GlobalStore {
+  state = createInitialState();
+
+  reset() {
+    this.state = createInitialState();
+  }
+
+  // Commodities & Centres
+  getCommodities() {
+    return this.state.commodities.filter((c) => c.active);
+  }
+
+  getCentres() {
+    return this.state.centres.filter((c) => c.active);
+  }
+
+  getCentre(id: string) {
+    return this.state.centres.find((c) => c.id === id);
+  }
+
+  getUsers() {
+    return this.state.users;
+  }
+
+  // Smart Recommendation Engine (Deterministic & Explainable)
+  recommendBooking(req: {
+    farmer_id: string;
+    commodity_id: string;
+    expected_quantity_q: number;
+    preferred_date: string;
+    preferred_time_start?: string;
+    preferred_time_end?: string;
+    origin_lat?: number;
+    origin_lng?: number;
+  }): RecommendationResult {
+    const fLat = req.origin_lat || 18.5204;
+    const fLng = req.origin_lng || 73.8567;
+
+    // Filter centres supporting commodity and with sufficient capacity
+    const candidates = this.state.centres.filter((c) => {
+      if (!c.active) return false;
+      const supports = c.commodities.some((comm) => comm.id === req.commodity_id);
+      if (!supports) return false;
+      if (c.capacity.remaining_storage_q < req.expected_quantity_q) return false;
+      if (c.capacity.remaining_daily_processing_q < req.expected_quantity_q) return false;
+      return true;
+    });
+
+    if (candidates.length === 0) {
+      return { recommended: null, alternatives: [], engine_version: "rules-v1" };
+    }
+
+    const scored: RecommendedSlot[] = candidates.map((c) => {
+      const dist = haversineDistanceKm(fLat, fLng, c.lat, c.lng);
+      // Pending quantity in today's bookings for this centre
+      const centreBookings = this.state.bookings.filter(
+        (b) => b.centre_id === c.id && ["CONFIRMED", "ARRIVED", "WAITING", "WEIGHING"].includes(b.status)
+      );
+      const pendingQ = centreBookings.reduce((sum, b) => sum + b.expected_quantity_q, 0);
+      const ratePerMin = Math.max(0.1, c.capacity.processing_rate_q_per_hr / 60);
+      const waitMin = Math.max(15, Math.round(pendingQ / ratePerMin));
+
+      // Scoring weights: Wait (35%), Capacity (25%), Distance (20%), Time (10%), Congestion (10%)
+      const distScore = Math.max(0, 1 - dist / 50);
+      const waitScore = Math.max(0, 1 - waitMin / 100);
+      const capScore = Math.min(1, c.capacity.remaining_storage_q / 5000);
+      const totalScore = Number((distScore * 0.2 + waitScore * 0.35 + capScore * 0.25 + 0.2).toFixed(2));
+
+      // Explainable reasons
+      const reasons: string[] = [];
+      if (waitMin <= 35) reasons.push(`Lower expected wait (~${waitMin} min)`);
+      if (c.capacity.remaining_storage_q >= 2000) reasons.push(`High remaining capacity (${(c.capacity.remaining_storage_q / 10).toFixed(0)} tonnes free)`);
+      if (c.capacity.processing_rate_q_per_hr >= 20) reasons.push(`Fast processing throughput (${c.capacity.processing_rate_q_per_hr} q/hr)`);
+      if (dist <= 15) reasons.push(`Convenient travel distance (${dist} km)`);
+      if (reasons.length === 0) reasons.push("Balanced operational capacity");
+
+      const slotStart = req.preferred_time_start || "10:30";
+      const slotEnd = req.preferred_time_end || "11:00";
+
+      return {
+        centre_id: c.id,
+        centre_name: c.name,
+        centre_code: c.code,
+        slot_start: `${req.preferred_date}T${slotStart}:00+05:30`,
+        slot_end: `${req.preferred_date}T${slotEnd}:00+05:30`,
+        distance_km: dist,
+        remaining_capacity_q: c.capacity.remaining_storage_q,
+        expected_wait_min: waitMin,
+        score: totalScore,
+        reasons: reasons.slice(0, 3),
+        processing_rate_q_per_hr: c.capacity.processing_rate_q_per_hr,
+      };
+    });
+
+    // Sort descending by total score
+    scored.sort((a, b) => b.score - a.score);
+
+    return {
+      recommended: scored[0] || null,
+      alternatives: scored.slice(1, 3),
+      engine_version: "rules-v1",
+    };
+  }
+
+  // Create Booking
+  createBooking(payload: {
+    farmer_id: string;
+    centre_id: string;
+    commodity_id: string;
+    booking_date: string;
+    slot_start: string;
+    slot_end: string;
+    expected_quantity_q: number;
+    source?: string;
+  }) {
+    // Fairness: 1 active booking per day per farmer
+    const existing = this.state.bookings.find(
+      (b) =>
+        b.farmer_id === payload.farmer_id &&
+        b.booking_date === payload.booking_date &&
+        ["CONFIRMED", "ARRIVED", "WAITING", "WEIGHING"].includes(b.status)
+    );
+    if (existing) {
+      throw new Error(`Farmer already has an active booking (${existing.booking_number}) on ${payload.booking_date}. Under fair procurement rules, only one booking per day is permitted.`);
+    }
+
+    const centre = this.getCentre(payload.centre_id);
+    if (!centre) throw new Error("Centre not found");
+
+    const comm = this.state.commodities.find((c) => c.id === payload.commodity_id);
+    const farmer = this.state.users.find((u) => u.id === payload.farmer_id);
+
+    const bookingNum = `BK-2026-${1000 + this.state.bookings.length + 1}`;
+    const newBooking: Booking = {
+      id: `bk-${Date.now()}`,
+      booking_number: bookingNum,
+      farmer_id: payload.farmer_id,
+      farmer_name: farmer?.display_name || "Farmer",
+      farmer_mobile: farmer?.mobile_masked || "",
+      centre_id: payload.centre_id,
+      centre_name: centre.name,
+      commodity_id: payload.commodity_id,
+      commodity_name: comm?.name || "Crop",
+      booking_date: payload.booking_date,
+      slot_start: payload.slot_start,
+      slot_end: payload.slot_end,
+      expected_quantity_q: payload.expected_quantity_q,
+      source: payload.source || "FARMER",
+      status: "CONFIRMED",
+      created_at: new Date().toISOString(),
+      queue_position: this.state.bookings.filter((b) => b.centre_id === payload.centre_id).length + 1,
+      estimated_wait_min: 20,
+    };
+
+    // Commit capacity
+    centre.capacity.occupied_committed_q += payload.expected_quantity_q;
+    centre.capacity.remaining_storage_q = Math.max(0, centre.capacity.storage_capacity_q - centre.capacity.occupied_committed_q);
+
+    this.state.bookings.unshift(newBooking);
+
+    // Audit Log
+    this.logAudit({
+      actor_user_id: payload.farmer_id,
+      actor_role: payload.source || "FARMER",
+      centre_id: centre.id,
+      entity_type: "booking",
+      entity_id: newBooking.id,
+      action: "BOOKING_CREATED",
+      old_value_json: null,
+      new_value_json: JSON.stringify({ booking_number: bookingNum, quantity_q: payload.expected_quantity_q }),
+      reason: "Farmer confirmed appointment slot",
+    });
+
+    // In-app notification
+    this.state.notifications.unshift({
+      id: `notif-${Date.now()}`,
+      user_id: payload.farmer_id,
+      channel: "IN_APP",
+      event_type: "BOOKING_CONFIRMED",
+      title: `Booking Confirmed: ${bookingNum}`,
+      body: `Your slot at ${centre.name} is booked for ${payload.booking_date} (${payload.slot_start}–${payload.slot_end}) for ${payload.expected_quantity_q} q.`,
+      delivery_status: "SENT",
+      created_at: new Date().toISOString(),
+    });
+
+    return newBooking;
+  }
+
+  getFarmerBookings(farmerId: string) {
+    return this.state.bookings.filter((b) => b.farmer_id === farmerId);
+  }
+
+  cancelBooking(id: string, reason?: string) {
+    const booking = this.state.bookings.find((b) => b.id === id);
+    if (!booking) throw new Error("Booking not found");
+
+    booking.status = "CANCELLED";
+    const centre = this.getCentre(booking.centre_id);
+    if (centre) {
+      centre.capacity.occupied_committed_q = Math.max(0, centre.capacity.occupied_committed_q - booking.expected_quantity_q);
+      centre.capacity.remaining_storage_q = Math.max(0, centre.capacity.storage_capacity_q - centre.capacity.occupied_committed_q);
+    }
+
+    this.logAudit({
+      actor_user_id: booking.farmer_id,
+      actor_role: "FARMER",
+      centre_id: booking.centre_id,
+      entity_type: "booking",
+      entity_id: booking.id,
+      action: "BOOKING_CANCELLED",
+      old_value_json: '{"status": "CONFIRMED"}',
+      new_value_json: '{"status": "CANCELLED"}',
+      reason: reason || "Farmer requested cancellation",
+    });
+
+    return booking;
+  }
+
+  // Staff Dashboard & Queue
+  getStaffDashboard(centreId?: string): StaffDashboardKPIs {
+    const cId = centreId || "centre-b";
+    const centre = this.getCentre(cId) || this.state.centres[1];
+    const todayStr = new Date().toISOString().split("T")[0];
+
+    const todayBookings = this.state.bookings.filter((b) => b.centre_id === centre.id);
+    const expToday = todayBookings.reduce((sum, b) => sum + (b.status !== "CANCELLED" ? b.expected_quantity_q : 0), 0);
+    const waitingCount = todayBookings.filter((b) => ["ARRIVED", "WAITING"].includes(b.status)).length;
+    const servingB = todayBookings.find((b) => ["WEIGHING", "QUALITY_CHECK"].includes(b.status));
+
+    const utilPct = Math.round((centre.capacity.occupied_committed_q / centre.capacity.storage_capacity_q) * 100);
+
+    return {
+      centre_id: centre.id,
+      centre_name: centre.name,
+      today_date: todayStr,
+      expected_quantity_today_q: expToday,
+      remaining_storage_q: centre.capacity.remaining_storage_q,
+      remaining_storage_tonnes: Number((centre.capacity.remaining_storage_q / 10).toFixed(1)),
+      daily_processing_capacity_q: centre.capacity.daily_processing_capacity_q,
+      processed_today_q: centre.capacity.processed_today_q,
+      processed_today_tonnes: Number((centre.capacity.processed_today_q / 10).toFixed(1)),
+      waiting_count: waitingCount,
+      currently_serving: servingB
+        ? {
+            booking_id: servingB.id,
+            booking_number: servingB.booking_number,
+            farmer_name: servingB.farmer_name || "Farmer",
+            commodity_name: servingB.commodity_name || "Crop",
+            expected_quantity_q: servingB.expected_quantity_q,
+            actual_quantity_q: 48.7,
+            status: servingB.status,
+            started_at: new Date().toISOString(),
+          }
+        : null,
+      processing_rate_q_per_hr: centre.capacity.processing_rate_q_per_hr,
+      utilization_pct: utilPct,
+    };
+  }
+
+  getStaffQueue(centreId?: string): QueueRow[] {
+    const cId = centreId || "centre-b";
+    const bookings = this.state.bookings.filter((b) => b.centre_id === cId);
+
+    return bookings.map((b, idx) => {
+      const isServing = b.status === "WEIGHING" || b.status === "QUALITY_CHECK";
+      return {
+        id: `q-${b.id}`,
+        booking_id: b.id,
+        booking_number: b.booking_number,
+        queue_position: isServing ? 1 : idx + 1,
+        farmer_name: b.farmer_name || "Farmer",
+        farmer_mobile_masked: b.farmer_mobile || "",
+        commodity_name: b.commodity_name || "Wheat",
+        expected_quantity_q: b.expected_quantity_q,
+        actual_quantity_q: b.status === "COMPLETED" || isServing ? 48.7 : null,
+        slot_window: `${b.slot_start} – ${b.slot_end}`,
+        arrival_status: b.status,
+        queue_status: isServing ? "SERVING" : "WAITING",
+        estimated_wait_min: isServing ? 0 : Math.max(5, (idx + 1) * 15),
+        eta_time_str: "10:45 AM",
+        can_mark_arrived: b.status === "CONFIRMED",
+        can_mark_noshow: b.status === "CONFIRMED" || b.status === "ARRIVED",
+        can_start_procurement: b.status === "ARRIVED" || isServing,
+      };
+    });
+  }
+
+  markArrived(bookingId: string, note?: string) {
+    const booking = this.state.bookings.find((b) => b.id === bookingId);
+    if (!booking) throw new Error("Booking not found");
+
+    booking.status = "ARRIVED";
+    booking.arrival_at = new Date().toISOString();
+
+    this.logAudit({
+      actor_user_id: "staff-01",
+      actor_role: "STAFF",
+      centre_id: booking.centre_id,
+      entity_type: "booking",
+      entity_id: booking.id,
+      action: "FARMER_ARRIVED",
+      old_value_json: '{"status": "CONFIRMED"}',
+      new_value_json: '{"status": "ARRIVED"}',
+      reason: note || "Gate arrival verified",
+    });
+
+    this.state.notifications.unshift({
+      id: `notif-${Date.now()}`,
+      user_id: booking.farmer_id,
+      channel: "IN_APP",
+      event_type: "ARRIVED",
+      title: "Checked In at Procurement Gate",
+      body: `Your arrival at ${booking.centre_name} has been verified. You are now in the active service queue.`,
+      delivery_status: "SENT",
+      created_at: new Date().toISOString(),
+    });
+
+    return booking;
+  }
+
+  markNoShow(bookingId: string, reason?: string) {
+    const booking = this.state.bookings.find((b) => b.id === bookingId);
+    if (!booking) throw new Error("Booking not found");
+
+    booking.status = "NO_SHOW";
+    const centre = this.getCentre(booking.centre_id);
+    if (centre) {
+      centre.capacity.occupied_committed_q = Math.max(0, centre.capacity.occupied_committed_q - booking.expected_quantity_q);
+      centre.capacity.remaining_storage_q = Math.max(0, centre.capacity.storage_capacity_q - centre.capacity.occupied_committed_q);
+    }
+
+    this.logAudit({
+      actor_user_id: "staff-01",
+      actor_role: "STAFF",
+      centre_id: booking.centre_id,
+      entity_type: "booking",
+      entity_id: booking.id,
+      action: "NO_SHOW_MARKED",
+      old_value_json: '{"status": "CONFIRMED"}',
+      new_value_json: '{"status": "NO_SHOW", "capacity_state": "POTENTIALLY_AVAILABLE"}',
+      reason: reason || "Farmer absent during arrival window",
+    });
+
+    return {
+      status: "NO_SHOW",
+      capacity_state: "POTENTIALLY_AVAILABLE",
+      message: "Booking marked as NO-SHOW. Planned capacity is released as POTENTIALLY AVAILABLE without auto-assigning walk-ins.",
+    };
+  }
+
+  recordWeighing(bookingId: string, actualQ: number, note?: string) {
+    const booking = this.state.bookings.find((b) => b.id === bookingId);
+    if (!booking) throw new Error("Booking not found");
+
+    booking.status = "QUALITY_CHECK";
+
+    // Update or create transaction record
+    let tx = this.state.transactions.find((t) => t.booking_id === bookingId);
+    if (!tx) {
+      tx = {
+        id: `tx-${Date.now()}`,
+        booking_id: booking.id,
+        booking_number: booking.booking_number,
+        farmer_id: booking.farmer_id,
+        farmer_name: booking.farmer_name || "Farmer",
+        centre_name: booking.centre_name || "Hadapsar Agro Logistics Hub",
+        commodity_name: booking.commodity_name || "Wheat",
+        expected_quantity_q: booking.expected_quantity_q,
+        actual_quantity_q: actualQ,
+        quantity_recorded_at: new Date().toISOString(),
+        farmer_confirmed_at: null,
+        quality_status: "PENDING",
+        quality_reason: null,
+        procurement_status: "PENDING",
+        payment_status: "PENDING",
+        payment_reference: null,
+        completed_at: null,
+        disputes: [],
+      };
+      this.state.transactions.unshift(tx);
+    } else {
+      tx.actual_quantity_q = actualQ;
+      tx.quantity_recorded_at = new Date().toISOString();
+    }
+
+    this.logAudit({
+      actor_user_id: "staff-01",
+      actor_role: "STAFF",
+      centre_id: booking.centre_id,
+      entity_type: "procurement",
+      entity_id: tx.id,
+      action: "ACTUAL_QUANTITY_RECORDED",
+      old_value_json: JSON.stringify({ expected_q: booking.expected_quantity_q, actual_q: null }),
+      new_value_json: JSON.stringify({ expected_q: booking.expected_quantity_q, actual_q: actualQ }),
+      reason: note || "Weighed on Platform Scale #2",
+    });
+
+    this.state.notifications.unshift({
+      id: `notif-${Date.now()}`,
+      user_id: booking.farmer_id,
+      channel: "IN_APP",
+      event_type: "QUANTITY_RECORDED",
+      title: "Weighing Complete — Review & Confirm",
+      body: `Recorded Weight: ${actualQ} q (Expected: ${booking.expected_quantity_q} q). Please confirm in your AnnaSetu portal or report a discrepancy.`,
+      delivery_status: "SENT",
+      created_at: new Date().toISOString(),
+    });
+
+    return {
+      procurement_id: tx.id,
+      expected_quantity_q: tx.expected_quantity_q,
+      actual_quantity_q: tx.actual_quantity_q,
+      farmer_confirmation_required: true,
+      status: booking.status,
+    };
+  }
+
+  recordQuality(bookingId: string, status: "PASSED" | "FAILED", reason: string) {
+    const booking = this.state.bookings.find((b) => b.id === bookingId);
+    let tx = this.state.transactions.find((t) => t.booking_id === bookingId);
+    if (tx) {
+      tx.quality_status = status;
+      tx.quality_reason = reason;
+    }
+
+    this.logAudit({
+      actor_user_id: "staff-01",
+      actor_role: "STAFF",
+      centre_id: booking?.centre_id || "centre-b",
+      entity_type: "procurement",
+      entity_id: tx?.id || bookingId,
+      action: "QUALITY_CHECK_RECORDED",
+      old_value_json: '{"quality": "PENDING"}',
+      new_value_json: JSON.stringify({ quality: status, reason }),
+      reason,
+    });
+
+    return { quality_status: status, quality_reason: reason };
+  }
+
+  completeProcurement(bookingId: string, note?: string) {
+    const booking = this.state.bookings.find((b) => b.id === bookingId);
+    if (booking) {
+      booking.status = "COMPLETED";
+      booking.queue_position = undefined;
+    }
+
+    const tx = this.state.transactions.find((t) => t.booking_id === bookingId);
+    if (tx) {
+      tx.procurement_status = "ACCEPTED";
+      tx.completed_at = new Date().toISOString();
+      tx.payment_status = "PENDING";
+      tx.payment_reference = `PFMS-2026-MAHA-${Math.floor(1000 + Math.random() * 9000)}`;
+    }
+
+    const centre = booking ? this.getCentre(booking.centre_id) : null;
+    if (centre && tx?.actual_quantity_q) {
+      centre.capacity.processed_today_q += tx.actual_quantity_q;
+    }
+
+    this.logAudit({
+      actor_user_id: "staff-01",
+      actor_role: "STAFF",
+      centre_id: booking?.centre_id || "centre-b",
+      entity_type: "procurement",
+      entity_id: tx?.id || bookingId,
+      action: "PROCUREMENT_COMPLETED",
+      old_value_json: '{"status": "QUALITY_CHECK"}',
+      new_value_json: JSON.stringify({ status: "ACCEPTED", payment_status: "PENDING" }),
+      reason: note || "Procurement batch completed",
+    });
+
+    return {
+      procurement_status: "ACCEPTED",
+      payment_status: "PENDING",
+      completed_at: new Date().toISOString(),
+    };
+  }
+
+  // Farmer Transparency & Dispute
+  getFarmerTransactions(farmerId: string) {
+    return this.state.transactions.filter((t) => t.farmer_id === farmerId);
+  }
+
+  confirmQuantity(procurementId: string) {
+    const tx = this.state.transactions.find((t) => t.id === procurementId);
+    if (!tx) throw new Error("Transaction not found");
+
+    tx.farmer_confirmed_at = new Date().toISOString();
+
+    this.logAudit({
+      actor_user_id: tx.farmer_id,
+      actor_role: "FARMER",
+      centre_id: "centre-b",
+      entity_type: "procurement",
+      entity_id: tx.id,
+      action: "FARMER_CONFIRMED_QUANTITY",
+      old_value_json: '{"farmer_confirmed_at": null}',
+      new_value_json: JSON.stringify({ confirmed_at: tx.farmer_confirmed_at, quantity_q: tx.actual_quantity_q }),
+      reason: "Farmer verified physical scale weight on digital portal",
+    });
+
+    return tx;
+  }
+
+  createDispute(procurementId: string, payload: { type: string; reported_quantity_q?: number; reason: string }) {
+    const tx = this.state.transactions.find((t) => t.id === procurementId);
+    if (!tx) throw new Error("Transaction not found");
+
+    const dispute = {
+      id: `disp-${Date.now()}`,
+      type: payload.type || "QUANTITY_DISCREPANCY",
+      reported_quantity_q: payload.reported_quantity_q || null,
+      reason: payload.reason,
+      status: "OPEN",
+      resolution_note: null,
+      resolved_by: null,
+      created_at: new Date().toISOString(),
+    };
+
+    tx.disputes.unshift(dispute);
+
+    this.logAudit({
+      actor_user_id: tx.farmer_id,
+      actor_role: "FARMER",
+      centre_id: "centre-b",
+      entity_type: "dispute",
+      entity_id: dispute.id,
+      action: "DISPUTE_OPENED",
+      old_value_json: null,
+      new_value_json: JSON.stringify(dispute),
+      reason: payload.reason,
+    });
+
+    return dispute;
+  }
+
+  // Simulation Controls
+  runSimulation(centreId: string, action: string) {
+    const centre = this.getCentre(centreId) || this.state.centres[1];
+    let message = "";
+
+    if (action === "ADVANCE_10_MIN") {
+      message = "Advanced operational clock by 10 minutes. Queue positions refreshed.";
+    } else if (action === "COMPLETE_CURRENT") {
+      const serving = this.state.bookings.find((b) => ["WEIGHING", "QUALITY_CHECK", "ARRIVED"].includes(b.status));
+      if (serving) {
+        serving.status = "COMPLETED";
+        message = `Farmer ${serving.farmer_name} completed. Next farmer summoned.`;
+      } else {
+        message = "No active farmer in queue to complete.";
+      }
+    } else if (action === "SLOW_PROCESSING" || action === "TRIGGER_ETA_SPIKE") {
+      centre.capacity.processing_rate_q_per_hr = Math.max(6.0, Number((centre.capacity.processing_rate_q_per_hr * 0.5).toFixed(1)));
+      message = `Processing throughput reduced to ${centre.capacity.processing_rate_q_per_hr} q/hr. Dynamic ETAs recalculated and delay alerts dispatched.`;
+
+      // Dispatch delay alerts
+      this.state.notifications.unshift({
+        id: `notif-${Date.now()}`,
+        user_id: "farmer-01",
+        channel: "IN_APP",
+        event_type: "DELAY_ALERT",
+        title: "Centre Delay Notification",
+        body: `Processing rate at ${centre.name} has temporarily slowed. Your revised ETA has been updated.`,
+        delivery_status: "SENT",
+        created_at: new Date().toISOString(),
+      });
+    } else if (action === "MARK_SEEDED_NOSHOW") {
+      const confirmed = this.state.bookings.find((b) => b.status === "CONFIRMED");
+      if (confirmed) {
+        this.markNoShow(confirmed.id, "Simulated missed window");
+        message = `Booking ${confirmed.booking_number} marked as NO-SHOW. Planned capacity flagged as POTENTIALLY AVAILABLE without auto walk-ins.`;
+      } else {
+        message = "No confirmed booking found to mark no-show.";
+      }
+    }
+
+    return {
+      success: true,
+      action,
+      centre_id: centre.id,
+      message,
+      current_rate_q_per_hr: centre.capacity.processing_rate_q_per_hr,
+    };
+  }
+
+  // Audit Logs
+  logAudit(entry: Omit<AuditLogItem, "id" | "created_at" | "request_id">) {
+    this.state.auditLogs.unshift({
+      id: `aud-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      ...entry,
+      request_id: `req-${Math.random().toString(36).slice(2, 8)}`,
+      created_at: new Date().toISOString(),
+    });
+  }
+
+  getAuditLogs(limit: number = 50) {
+    return this.state.auditLogs.slice(0, limit);
+  }
+
+  updatePaymentStatus(procurementId: string, status: string) {
+    const tx = this.state.transactions.find((t) => t.id === procurementId);
+    if (tx) {
+      tx.payment_status = status as any;
+      if (!tx.payment_reference) {
+        tx.payment_reference = `PFMS-2026-MAHA-${Math.floor(1000 + Math.random() * 9000)}`;
+      }
+    }
+
+    this.logAudit({
+      actor_user_id: "admin-01",
+      actor_role: "ADMIN",
+      centre_id: "centre-b",
+      entity_type: "payment",
+      entity_id: procurementId,
+      action: "PAYMENT_STATUS_SYNCED",
+      old_value_json: '{"status": "PENDING"}',
+      new_value_json: JSON.stringify({ status, reference: tx?.payment_reference }),
+      reason: "Simulated government PFMS disbursal reconciliation",
+    });
+
+    return { procurement_id: procurementId, payment_status: status };
+  }
+}
+
+// Singleton reference
+const globalForStore = globalThis as unknown as { storeInstance?: GlobalStore };
+export const globalStore = globalForStore.storeInstance ?? new GlobalStore();
+if (process.env.NODE_ENV !== "production") globalForStore.storeInstance = globalStore;
