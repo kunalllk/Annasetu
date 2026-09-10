@@ -18,6 +18,11 @@ export function setStoredSession(user: DemoUser) {
   localStorage.setItem("annasetu_demo_user", JSON.stringify(user));
 }
 
+export function clearStoredSession() {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem("annasetu_demo_user");
+}
+
 function getHeaders(user?: DemoUser | null): HeadersInit {
   const session = user || getStoredSession();
   const headers: Record<string, string> = {
@@ -59,6 +64,10 @@ export const api = {
 
   // Auth & Demo Users
   getDemoUsers: () => apiFetch<DemoUser[]>("/auth/demo-users"),
+  registerFarmer: (payload: any) => apiFetch<DemoUser>("/farmers", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  }),
 
   // Bookings & Smart Recommendation
   recommendBooking: (payload: any) => apiFetch<any>("/bookings/recommend", {

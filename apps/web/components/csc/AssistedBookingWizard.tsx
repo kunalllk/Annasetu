@@ -22,6 +22,52 @@ export const AssistedBookingWizard: React.FC<AssistedBookingWizardProps> = ({ cu
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
+  // Inline Add Farmer State
+  const [showAddFarmer, setShowAddFarmer] = useState(false);
+  const [newFarmerName, setNewFarmerName] = useState("");
+  const [newFarmerMobile, setNewFarmerMobile] = useState("");
+  const [newFarmerAadhaar, setNewFarmerAadhaar] = useState("");
+  const [newFarmerVillage, setNewFarmerVillage] = useState("");
+  const [newFarmerState, setNewFarmerState] = useState("Madhya Pradesh");
+  const [addingFarmerLoading, setAddingFarmerLoading] = useState(false);
+  const [addedSuccessName, setAddedSuccessName] = useState("");
+
+  const handleAutoFillNewFarmer = () => {
+    setNewFarmerName("Gurcharan Singh Brar");
+    setNewFarmerMobile("98765 99421");
+    setNewFarmerAadhaar("8921-4321-7654");
+    setNewFarmerVillage("Kotkapura");
+    setNewFarmerState("Punjab");
+  };
+
+  const handleRegisterNewFarmer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newFarmerName.trim()) return;
+    setAddingFarmerLoading(true);
+    try {
+      const created = await api.registerFarmer({
+        display_name: newFarmerName.trim(),
+        mobile: newFarmerMobile.trim() || "98765 99421",
+        aadhaar: newFarmerAadhaar.trim(),
+        village: newFarmerVillage.trim() || "Kotkapura",
+        state: newFarmerState,
+      });
+
+      setFarmers((prev) => [created, ...prev]);
+      setSelectedFarmerId(created.id);
+      setAddedSuccessName(created.display_name);
+      setShowAddFarmer(false);
+      setNewFarmerName("");
+      setNewFarmerMobile("");
+      setNewFarmerAadhaar("");
+      setNewFarmerVillage("");
+    } catch (err: any) {
+      alert("Failed to register farmer: " + err.message);
+    } finally {
+      setAddingFarmerLoading(false);
+    }
+  };
+
   useEffect(() => {
     Promise.all([api.getDemoUsers(), api.getCommodities()]).then(([users, comms]) => {
       const fList = users.filter((u) => u.role === "FARMER");
@@ -164,17 +210,126 @@ export const AssistedBookingWizard: React.FC<AssistedBookingWizardProps> = ({ cu
         <form onSubmit={handleRecommend} className="bg-white rounded-2xl p-6 border border-surface-border shadow-xs space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-                Select Visiting Farmer
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  Select Visiting Farmer
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowAddFarmer(!showAddFarmer)}
+                  className="text-xs font-bold text-agro-800 hover:text-agro-950 flex items-center gap-1 bg-agro-50 hover:bg-agro-100 border border-agro-200 px-2 py-0.5 rounded-lg transition cursor-pointer shadow-xs"
+                >
+                  <span>{showAddFarmer ? "− Cancel" : "+ Add Farmer"}</span>
+                </button>
+              </div>
+
+              {addedSuccessName && (
+                <div className="mb-2 p-2 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs font-semibold flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Registered & Selected: {addedSuccessName}</span>
+                </div>
+              )}
+
+              {/* Inline Add Farmer Form */}
+              {showAddFarmer && (
+                <div className="mb-3 p-3.5 bg-slate-900 text-white rounded-xl border border-slate-800 space-y-3 animate-in fade-in zoom-in-95">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span className="text-xs font-bold text-grain-400">Register New Farmer at Kiosk</span>
+                    <button
+                      type="button"
+                      onClick={handleAutoFillNewFarmer}
+                      className="bg-grain-500 hover:bg-grain-400 text-agro-950 font-black px-2 py-0.5 rounded text-[11px] flex items-center gap-1 transition cursor-pointer"
+                    >
+                      <Sparkles className="w-3 h-3" />
+                      <span>Auto-Fill Demo</span>
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <label className="block text-[10px] text-slate-400 font-bold mb-0.5">Full Name *</label>
+                      <input
+                        type="text"
+                        placeholder="Farmer Name"
+                        value={newFarmerName}
+                        onChange={(e) => setNewFarmerName(e.target.value)}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg p-1.5 text-xs text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-400 font-bold mb-0.5">Mobile Number *</label>
+                      <input
+                        type="tel"
+                        placeholder="98XXX XXXXX"
+                        value={newFarmerMobile}
+                        onChange={(e) => setNewFarmerMobile(e.target.value)}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg p-1.5 text-xs text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <div>
+                      <label className="block text-[10px] text-slate-400 font-bold mb-0.5">Aadhaar (UIDAI)</label>
+                      <input
+                        type="text"
+                        placeholder="XXXX-XXXX-XXXX"
+                        value={newFarmerAadhaar}
+                        onChange={(e) => setNewFarmerAadhaar(e.target.value)}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg p-1.5 text-xs text-white font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-400 font-bold mb-0.5">Village</label>
+                      <input
+                        type="text"
+                        placeholder="Village"
+                        value={newFarmerVillage}
+                        onChange={(e) => setNewFarmerVillage(e.target.value)}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg p-1.5 text-xs text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-400 font-bold mb-0.5">State</label>
+                      <select
+                        value={newFarmerState}
+                        onChange={(e) => setNewFarmerState(e.target.value)}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg p-1.5 text-xs text-white"
+                      >
+                        <option value="Punjab">Punjab</option>
+                        <option value="Haryana">Haryana</option>
+                        <option value="Madhya Pradesh">Madhya Pradesh</option>
+                        <option value="Rajasthan">Rajasthan</option>
+                        <option value="Uttar Pradesh">Uttar Pradesh</option>
+                        <option value="Bihar">Bihar</option>
+                        <option value="Telangana">Telangana</option>
+                        <option value="Maharashtra">Maharashtra</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={addingFarmerLoading}
+                    onClick={handleRegisterNewFarmer}
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 rounded-lg text-xs transition cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    {addingFarmerLoading ? "Registering..." : "Save & Select This Farmer"}
+                  </button>
+                </div>
+              )}
+
               <select
                 value={selectedFarmerId}
-                onChange={(e) => setSelectedFarmerId(e.target.value)}
+                onChange={(e) => {
+                  setSelectedFarmerId(e.target.value);
+                  setAddedSuccessName("");
+                }}
                 className="w-full bg-surface-muted border border-gray-300 rounded-xl p-2.5 text-xs font-bold text-gray-900"
               >
                 {farmers.map((f) => (
                   <option key={f.id} value={f.id}>
-                    {f.display_name} ({f.village || "Pune"}) • {f.mobile_masked}
+                    {f.display_name} ({f.village || "Village"}) • {f.mobile_masked}
                   </option>
                 ))}
               </select>

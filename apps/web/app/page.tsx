@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { DemoUser } from "@/lib/types";
-import { api, getStoredSession, setStoredSession } from "@/lib/api";
+import { api, getStoredSession, setStoredSession, clearStoredSession } from "@/lib/api";
 import { RoleSwitcherBar } from "@/components/layout/RoleSwitcherBar";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { MockVerificationModal } from "@/components/ui/MockVerificationModal";
+import { LoginPage } from "@/components/auth/LoginPage";
 
 // Farmer components
 import { FarmerOverview } from "@/components/farmer/FarmerOverview";
@@ -42,14 +43,8 @@ export default function AnnaSetuApp() {
           if (matching) {
             setCurrentUser(matching);
             setDefaultTabForRole(matching.role);
-            return;
           }
         }
-        // Default to Primary Demo Farmer (Ramkishore Yadav)
-        const defaultFarmer = users.find((u) => u.role === "FARMER" && u.id === "farmer-01") || users.find((u) => u.role === "FARMER") || users[0];
-        setCurrentUser(defaultFarmer);
-        setStoredSession(defaultFarmer);
-        setDefaultTabForRole(defaultFarmer.role);
       })
       .catch((err) => console.error("Failed to load demo users:", err))
       .finally(() => setInitialLoading(false));
@@ -76,7 +71,13 @@ export default function AnnaSetuApp() {
 
   const handleUserChange = (newUser: DemoUser) => {
     setCurrentUser(newUser);
+    setStoredSession(newUser);
     setDefaultTabForRole(newUser.role);
+  };
+
+  const handleLogout = () => {
+    clearStoredSession();
+    setCurrentUser(null);
   };
 
   const handleResetDemo = () => {
@@ -93,19 +94,29 @@ export default function AnnaSetuApp() {
 
   if (initialLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-surface text-gray-500 font-medium">
-        Loading AnnaSetu Smart Agricultural Procurement Coordination Platform...
+      <div className="min-h-screen flex items-center justify-center bg-slate-900 text-slate-400 font-medium">
+        Loading AnnaSetu Smart Agricultural Procurement Platform...
       </div>
+    );
+  }
+
+  // If no user is logged in, present the 4-Persona Unified Login & Sign-up Portal
+  if (!currentUser) {
+    return (
+      <LoginPage
+        allUsers={allUsers}
+        onLoginSuccess={handleUserChange}
+        onResetDemo={handleResetDemo}
+      />
     );
   }
 
   return (
     <div className="min-h-screen bg-surface flex flex-col">
-      {/* Sticky Role Switcher Bar */}
+      {/* Sticky Top Session Bar without the old role buttons */}
       <RoleSwitcherBar
         currentUser={currentUser}
-        allUsers={allUsers}
-        onUserChange={handleUserChange}
+        onLogout={handleLogout}
         onResetDemo={handleResetDemo}
       />
 

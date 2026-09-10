@@ -1,45 +1,22 @@
 "use client";
 
 import React, { useState } from "react";
-import { UserCheck, RefreshCw, ChevronDown, Check, Sparkles, Building2, User, Shield, Store } from "lucide-react";
+import { RefreshCw, LogOut, ShieldCheck, User } from "lucide-react";
 import { DemoUser } from "@/lib/types";
-import { api, setStoredSession } from "@/lib/api";
+import { api } from "@/lib/api";
 
 interface RoleSwitcherBarProps {
   currentUser: DemoUser | null;
-  allUsers: DemoUser[];
-  onUserChange: (user: DemoUser) => void;
+  onLogout: () => void;
   onResetDemo: () => void;
 }
 
 export const RoleSwitcherBar: React.FC<RoleSwitcherBarProps> = ({
   currentUser,
-  allUsers,
-  onUserChange,
+  onLogout,
   onResetDemo,
 }) => {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [resetting, setResetting] = useState(false);
-
-  // Group default role representatives
-  const farmerUser = allUsers.find((u) => u.role === "FARMER" && u.id === "farmer-01") || allUsers.find((u) => u.role === "FARMER");
-  const staffUser = allUsers.find((u) => u.role === "STAFF" && u.id === "staff-01") || allUsers.find((u) => u.role === "STAFF");
-  const cscUser = allUsers.find((u) => u.role === "CSC");
-  const adminUser = allUsers.find((u) => u.role === "ADMIN");
-
-  const roles = [
-    { role: "FARMER", label: "Farmer", icon: User, user: farmerUser, desc: farmerUser ? `${farmerUser.display_name} (${farmerUser.village?.split(",")[0] || "Demo"})` : "Farmer Demo" },
-    { role: "STAFF", label: "Centre Staff", icon: Building2, user: staffUser, desc: "Centre B (Ujjain)" },
-    { role: "CSC", label: "CSC Operator", icon: Store, user: cscUser, desc: "Assisted Kiosk (VLE)" },
-    { role: "ADMIN", label: "Super Admin", icon: Shield, user: adminUser, desc: "Directorate / FCI" },
-  ];
-
-  const handleRoleSelect = (targetUser: DemoUser | undefined) => {
-    if (!targetUser) return;
-    setStoredSession(targetUser);
-    onUserChange(targetUser);
-    setDropdownOpen(false);
-  };
 
   const handleReset = async () => {
     if (confirm("Reset AnnaSetu database to pristine demo state? (5 centres, 35 farmers, fresh queue)")) {
@@ -55,93 +32,74 @@ export const RoleSwitcherBar: React.FC<RoleSwitcherBarProps> = ({
     }
   };
 
+  const getRoleBadgeColor = (role?: string) => {
+    switch (role) {
+      case "FARMER":
+        return "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
+      case "STAFF":
+        return "bg-amber-500/20 text-amber-300 border-amber-500/30";
+      case "CSC":
+        return "bg-sky-500/20 text-sky-300 border-sky-500/30";
+      case "ADMIN":
+        return "bg-purple-500/20 text-purple-300 border-purple-500/30";
+      default:
+        return "bg-slate-500/20 text-slate-300 border-slate-500/30";
+    }
+  };
+
+  const getRoleLabel = (role?: string) => {
+    switch (role) {
+      case "FARMER":
+        return "Farmer (किसान)";
+      case "STAFF":
+        return "Mandi Staff (खरीद केंद्र)";
+      case "CSC":
+        return "CSC Kiosk (डिजिटल सेवा)";
+      case "ADMIN":
+        return "Super Admin (प्रशासन)";
+      default:
+        return role || "User";
+    }
+  };
+
   return (
-    <div className="bg-agro-950 text-white border-b border-agro-800 text-xs px-4 py-2 sticky top-0 z-40 shadow-sm">
+    <div className="bg-slate-950 text-white border-b border-slate-800 text-xs px-4 py-2 sticky top-0 z-40 shadow-sm">
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-        {/* Left: Current Active Role Indicator */}
-        <div className="flex items-center gap-2">
-          <span className="bg-grain-500 text-agro-950 text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded shadow-sm">
-            SIH Demo Sandbox
-          </span>
-          <span className="text-agro-300 hidden sm:inline">Active Persona:</span>
-          <div className="relative">
-            <button
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="flex items-center gap-2 bg-agro-900 hover:bg-agro-800 border border-agro-700 px-3 py-1 rounded-lg text-white font-medium transition"
-            >
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              <span>{currentUser?.display_name || "Select Role"}</span>
-              <span className="text-[11px] bg-agro-800 text-agro-200 px-1.5 py-0.2 rounded border border-agro-700">
-                {currentUser?.role}
-              </span>
-              <ChevronDown className="w-3.5 h-3.5 text-agro-300" />
-            </button>
-
-            {/* Dropdown for picking any of 35 seeded farmers or staff */}
-            {dropdownOpen && (
-              <div className="absolute left-0 mt-1.5 w-72 bg-white text-gray-800 rounded-xl shadow-2xl border border-gray-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-                <div className="px-3 py-1.5 text-[11px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
-                  Switch Demo User
-                </div>
-                <div className="max-h-64 overflow-y-auto">
-                  {allUsers.map((u) => {
-                    const isSelected = u.id === currentUser?.id;
-                    return (
-                      <button
-                        key={u.id}
-                        onClick={() => handleRoleSelect(u)}
-                        className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-agro-50 transition ${
-                          isSelected ? "bg-agro-50/80 font-bold text-agro-900" : "text-gray-700"
-                        }`}
-                      >
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <span>{u.display_name}</span>
-                            {isSelected && <Check className="w-3.5 h-3.5 text-agro-700" />}
-                          </div>
-                          <div className="text-[10px] text-gray-400">
-                            {u.role} {u.centre_name ? `• ${u.centre_name}` : ""} {u.village ? `• ${u.village}` : ""}
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+        {/* Left: Active Logged In Persona Info */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-slate-400 text-xs hidden sm:inline">Logged In:</span>
+            <span className="font-bold text-white text-xs">{currentUser?.display_name || "Authenticated User"}</span>
           </div>
+
+          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${getRoleBadgeColor(currentUser?.role)}`}>
+            {getRoleLabel(currentUser?.role)}
+          </span>
+
+          {(currentUser?.village || currentUser?.centre_name) && (
+            <span className="text-[11px] text-slate-400 hidden md:inline border-l border-slate-800 pl-3">
+              {currentUser.village || currentUser.centre_name}
+            </span>
+          )}
         </div>
 
-        {/* Center: Fast 1-Click Role Switcher */}
-        <div className="flex items-center gap-1 bg-agro-900/90 p-1 rounded-xl border border-agro-800">
-          {roles.map((r) => {
-            const isActive = currentUser?.role === r.role;
-            const Icon = r.icon;
-            return (
-              <button
-                key={r.role}
-                onClick={() => handleRoleSelect(r.user)}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition ${
-                  isActive
-                    ? "bg-agro-700 text-white shadow-sm font-bold border border-agro-600"
-                    : "text-agro-200 hover:text-white hover:bg-agro-800/80"
-                }`}
-                title={r.desc}
-              >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? "text-grain-400" : "text-agro-300"}`} />
-                <span>{r.label}</span>
-              </button>
-            );
-          })}
-        </div>
+        {/* Right: Switch Role / Logout & Reset Demo */}
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={onLogout}
+            className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 px-3 py-1 rounded-lg transition text-xs font-semibold cursor-pointer shadow-xs"
+            title="Log out and return to the Persona Selection & Login page"
+          >
+            <LogOut className="w-3.5 h-3.5 text-grain-400" />
+            <span>Switch Role / Logout</span>
+          </button>
 
-        {/* Right: Reset Demo state */}
-        <div className="flex items-center gap-2">
           <button
             onClick={handleReset}
             disabled={resetting}
-            className="flex items-center gap-1.5 bg-red-900/60 hover:bg-red-800/80 text-red-200 border border-red-700/60 px-2.5 py-1 rounded-lg transition text-[11px] font-medium disabled:opacity-50"
-            title="Reset to clean baseline dataset"
+            className="flex items-center gap-1.5 bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-800/80 px-2.5 py-1 rounded-lg transition text-[11px] font-medium disabled:opacity-50 cursor-pointer"
+            title="Reset database to clean baseline dataset"
           >
             <RefreshCw className={`w-3 h-3 ${resetting ? "animate-spin" : ""}`} />
             <span>{resetting ? "Resetting..." : "Reset Demo"}</span>

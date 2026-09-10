@@ -128,6 +128,11 @@ export async function POST(
       return NextResponse.json({ data: globalStore.recommendBooking(body) });
     }
 
+    // POST /farmers
+    if (path === "farmers" || path === "farmers/register") {
+      return NextResponse.json({ data: globalStore.addFarmer(body) });
+    }
+
     // POST /bookings
     if (path === "bookings") {
       return NextResponse.json({ data: globalStore.createBooking(body) });

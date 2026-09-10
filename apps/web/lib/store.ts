@@ -457,6 +457,55 @@ class GlobalStore {
     return this.state.users;
   }
 
+  addFarmer(payload: {
+    display_name: string;
+    mobile?: string;
+    aadhaar?: string;
+    village?: string;
+    district?: string;
+    state?: string;
+    lat?: number;
+    lng?: number;
+  }): DemoUser {
+    const nextIdx = this.state.users.filter((u) => u.role === "FARMER").length + 1;
+    const cleanMobile = (payload.mobile || "").replace(/\s+/g, "");
+    const mobileMasked = cleanMobile.length >= 10
+      ? `+91 ${cleanMobile.slice(0, 2)}XXX XX${cleanMobile.slice(-3)}`
+      : `+91 98XXX XX${100 + nextIdx}`;
+
+    const newFarmer: DemoUser = {
+      id: `farmer-${Date.now()}`,
+      role: "FARMER",
+      display_name: payload.display_name,
+      mobile_masked: mobileMasked,
+      village: payload.village ? `${payload.village}${payload.district ? `, ${payload.district}` : ""}` : "Agro District",
+      state: payload.state || "Madhya Pradesh",
+      lat: payload.lat || 23.2010,
+      lng: payload.lng || 75.8210,
+    };
+
+    this.state.users.unshift(newFarmer);
+
+    this.logAudit({
+      actor_user_id: "csc-01",
+      actor_role: "CSC",
+      centre_id: "centre-b",
+      entity_type: "farmer",
+      entity_id: newFarmer.id,
+      action: "FARMER_REGISTERED",
+      old_value_json: null,
+      new_value_json: JSON.stringify({
+        name: newFarmer.display_name,
+        mobile: newFarmer.mobile_masked,
+        village: newFarmer.village,
+        state: newFarmer.state,
+      }),
+      reason: "Farmer registered via AnnaSetu Portal",
+    });
+
+    return newFarmer;
+  }
+
   // Smart Recommendation Engine (Deterministic & Explainable)
   recommendBooking(req: {
     farmer_id: string;
