@@ -1,0 +1,1 @@
+from app.smart_engine.engine import SmartRecommendationEngine, haversine_distance_km
